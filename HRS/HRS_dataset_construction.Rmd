@@ -1,0 +1,661 @@
+---
+title: "HRS Allostatic (over)Load Dataset Construction"
+subtitle: "CHORDS Lab – Washington State University"
+author:
+- "David Rice"
+- "Jason Cross"
+- "Shawna Beese"
+date: "Last updated: 2025-07-15"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+
+## Overview
+
+This R Markdown script walks through the construction of a dataset for allostatic (over)load research using data from the [Health and Retirement Study (HRS)](https://hrs.isr.umich.edu/).
+
+⚠️ Before continuing, make sure you’ve downloaded and organized the required raw data. See [`HRS_access_guide.md`](HRS_access_guide.md) for instructions.
+
+<img src="images/hrs_data_prep/step01_data_prep.png" alt="HRS Data Prep" width="80%"/> 
+
+<br>
+
+The [`HRS_access_guide.md`](HRS_access_guide.md) will walk you through downloading the necessary public and restricted-access datasets and arranging them in a folder structure compatible with this script.
+
+<img src="images/step04_hrs_final.png" alt="Final Folder Structure" width="80%"/> 
+
+---
+
+### What You’ll Need to Run This Script
+
+- Raw HRS data, organized as described in the guide
+- R environment with the following packages: `SAScii`, `dplyr`, `stringr`
+- Familiarity with HRS data formats and .sas scripts
+
+💡 Reminder: Access to biomarker files requires registration and approval from HRS. Passphrases for restricted datasets are provided by HRS via email upon approval.
+
+## Setup & Libraries
+
+```{r install-packages, eval=FALSE}
+install.packages(c("SAScii", "dplyr", "stringr"))
+```
+
+```{r libraries}
+library(SAScii)
+library(dplyr)
+library(stringr)
+```
+
+---
+
+## 📁 Set File Path
+
+```{r file-path}
+# Set to the location of your "HRS Data Products" folder
+path <- "../path_to_your_folder/HRS Data Products/" # Replace with the full path to your local "HRS Data Products" folder
+```
+
+
+---
+
+### Load 2016 HRS Core Data
+
+```{r}
+
+#####################
+# Load 2016 HRS Core Data
+#####################
+
+# Set path to 2016 HRS Core folder
+setwd(file.path(path, "HRS Core Data/h16core"))
+
+# Load datasets
+preload_2016 <- read.SAScii("h16da/H16PR_R.da", "h16sas/H16PR_R.sas")
+demo_2016    <- read.SAScii("h16da/H16B_R.da",  "h16sas/H16B_R.sas")
+meas_2016    <- read.SAScii("h16da/H16I_R.da",  "h16sas/H16I_R.sas")
+
+# Add unique identifier
+add_id <- function(df) df %>% mutate(unique_id = paste(HHID, PN, sep = "_"))
+preload_2016 <- add_id(preload_2016)
+demo_2016    <- add_id(demo_2016)
+meas_2016    <- add_id(meas_2016)
+
+# Join and select relevant variables
+joined_demo_2016 <- preload_2016 %>%
+  select(unique_id, sex = PX060_R, birth_year = PX067_R) %>%
+  left_join(
+    demo_2016 %>%
+      select(unique_id, race = PB089M1M, ethnicity = PB029M1M),
+    by = "unique_id"
+  ) %>%
+  left_join(
+    meas_2016 %>%
+      select(unique_id, pulse1 = PI861, pulse2 = PI866, pulse3 = PI871, waist = PI907, height = PI834),
+    by = "unique_id"
+  ) %>%
+  mutate(survey_year = 2016)
+
+# Preview the cleaned 2016 data
+glimpse(joined_demo_2016)
+
+```
+
+---
+
+### Load 2014 HRS Core Data
+
+```{r}
+
+#####################
+# Load 2014 HRS Core Data
+#####################
+
+# Set path to 2014 HRS Core folder
+setwd(file.path(path, "HRS Core Data/h14core"))
+
+# Load datasets
+preload_2014 <- read.SAScii("h14da/H14PR_R.da", "h14sas/H14PR_R.sas")
+demo_2014    <- read.SAScii("h14da/H14B_R.da",  "h14sas/H14B_R.sas")
+meas_2014    <- read.SAScii("h14da/H14I_R.da",  "h14sas/H14I_R.sas")
+
+# Add unique identifier
+add_id <- function(df) df %>% mutate(unique_id = paste(HHID, PN, sep = "_"))
+preload_2014 <- add_id(preload_2014)
+demo_2014    <- add_id(demo_2014)
+meas_2014    <- add_id(meas_2014)
+
+# Join and select relevant variables
+joined_demo_2014 <- preload_2014 %>%
+  select(unique_id, sex = OX060_R, birth_year = OX067_R) %>%
+  left_join(
+    demo_2014 %>%
+      select(unique_id, race = OB089M1M, ethnicity = OB029M1M),
+    by = "unique_id"
+  ) %>%
+  left_join(
+    meas_2014 %>%
+      select(unique_id, pulse1 = OI861, pulse2 = OI866, pulse3 = OI871, waist = OI907, height = OI834),
+    by = "unique_id"
+  ) %>%
+  mutate(survey_year = 2014)
+
+# Preview the cleaned 2014 data
+glimpse(joined_demo_2014)
+
+```
+
+---
+
+### Load 2012 HRS Core Data
+
+```{r}
+
+#####################
+# Load 2012 HRS Core Data
+#####################
+
+# Set path to 2012 HRS Core folder
+setwd(file.path(path, "HRS Core Data/h12core"))
+
+# Load datasets
+preload_2012 <- read.SAScii("h12da/H12PR_R.da", "h12sas/H12PR_R.sas")
+demo_2012    <- read.SAScii("h12da/H12B_R.da",  "h12sas/H12B_R.sas")
+meas_2012    <- read.SAScii("h12da/H12I_R.da",  "h12sas/H12I_R.sas")
+
+# Add unique identifier
+add_id <- function(df) df %>% mutate(unique_id = paste(HHID, PN, sep = "_"))
+preload_2012 <- add_id(preload_2012)
+demo_2012    <- add_id(demo_2012)
+meas_2012    <- add_id(meas_2012)
+
+# Join and select relevant variables
+joined_demo_2012 <- preload_2012 %>%
+  select(unique_id, sex = NX060_R, birth_year = NX067_R) %>%
+  left_join(
+    demo_2012 %>%
+      select(unique_id, race = NB089M1M, ethnicity = NB029M1M),
+    by = "unique_id"
+  ) %>%
+  left_join(
+    meas_2012 %>%
+      select(unique_id, pulse1 = NI861, pulse2 = NI866, pulse3 = NI871, waist = NI907, height = NI834),
+    by = "unique_id"
+  ) %>%
+  mutate(survey_year = 2012)
+
+# Preview the cleaned 2012 data
+glimpse(joined_demo_2012)
+
+```
+
+---
+
+### Load 2010 HRS Core Data
+
+```{r}
+
+#####################
+# Load 2010 HRS Core Data
+#####################
+
+# Set path to 2010 HRS Core folder
+setwd(file.path(path, "HRS Core Data/h10core"))
+
+# Load datasets
+preload_2010 <- read.SAScii("h10da/H10PR_R.da", "h10sas/H10PR_R.sas")
+demo_2010    <- read.SAScii("h10da/H10B_R.da",  "h10sas/H10B_R.sas")
+meas_2010    <- read.SAScii("h10da/H10I_R.da",  "h10sas/H10I_R.sas")
+
+# Add unique identifier
+add_id <- function(df) df %>% mutate(unique_id = paste(HHID, PN, sep = "_"))
+preload_2010 <- add_id(preload_2010)
+demo_2010    <- add_id(demo_2010)
+meas_2010    <- add_id(meas_2010)
+
+# Join and select relevant variables
+joined_demo_2010 <- preload_2010 %>%
+  select(unique_id, sex = MX060_R, birth_year = MX067_R) %>%
+  left_join(
+    demo_2010 %>%
+      select(unique_id, race = MB089M1M, ethnicity = MB029M1M),
+    by = "unique_id"
+  ) %>%
+  left_join(
+    meas_2010 %>%
+      select(unique_id, pulse1 = MI861, pulse2 = MI866, pulse3 = MI871, waist = MI907, height = MI834),
+    by = "unique_id"
+  ) %>%
+  mutate(survey_year = 2010)
+
+# Preview the cleaned 2010 data
+glimpse(joined_demo_2010)
+
+```
+
+---
+
+### Load 2008 HRS Core Data
+
+```{r}
+
+#####################
+# Load 2008 HRS Core Data
+#####################
+
+# Set path to 2008 HRS Core folder
+setwd(file.path(path, "HRS Core Data/h08core"))
+
+# Load datasets
+preload_2008 <- read.SAScii("h08da/H08PR_R.da", "h08sas/H08PR_R.sas")
+demo_2008    <- read.SAScii("h08da/H08B_R.da",  "h08sas/H08B_R.sas")
+meas_2008    <- read.SAScii("h08da/H08I_R.da",  "h08sas/H08I_R.sas")
+
+# Add unique identifier
+add_id <- function(df) df %>% mutate(unique_id = paste(HHID, PN, sep = "_"))
+preload_2008 <- add_id(preload_2008)
+demo_2008    <- add_id(demo_2008)
+meas_2008    <- add_id(meas_2008)
+
+# Join and select relevant variables
+joined_demo_2008 <- preload_2008 %>%
+  select(unique_id, sex = LX060_R, birth_year = LX067_R) %>%
+  left_join(
+    demo_2008 %>%
+      select(unique_id, race = LB089M1M, ethnicity = LB029M1M),
+    by = "unique_id"
+  ) %>%
+  left_join(
+    meas_2008 %>%
+      select(unique_id, pulse1 = LI861, pulse2 = LI866, pulse3 = LI871, waist = LI907, height = LI834),
+    by = "unique_id"
+  ) %>%
+  mutate(survey_year = 2008)
+
+# Preview the cleaned 2008 data
+glimpse(joined_demo_2008)
+
+```
+
+---
+
+### Load 2006 HRS Core Data
+
+```{r}
+
+#####################
+# Load 2006 HRS Core Data
+#####################
+
+# Set path to 2006 HRS Core folder
+setwd(file.path(path, "HRS Core Data/h06core"))
+
+# Load datasets
+preload_2006 <- read.SAScii("h06da/H06PR_R.da", "h06sas/H06PR_R.sas")
+demo_2006    <- read.SAScii("h06da/H06B_R.da",  "h06sas/H06B_R.sas")
+meas_2006    <- read.SAScii("h06da/H06I_R.da",  "h06sas/H06I_R.sas")
+
+# Add unique identifier
+add_id <- function(df) df %>% mutate(unique_id = paste(HHID, PN, sep = "_"))
+preload_2006 <- add_id(preload_2006)
+demo_2006    <- add_id(demo_2006)
+meas_2006    <- add_id(meas_2006)
+
+# Join and select relevant variables
+joined_demo_2006 <- preload_2006 %>%
+  select(unique_id, sex = KX060_R, birth_year = KX067_R) %>%
+  left_join(
+    demo_2006 %>%
+      select(unique_id, race = KB089M1M, ethnicity = KB029M1M),
+    by = "unique_id"
+  ) %>%
+  left_join(
+    meas_2006 %>%
+      select(unique_id, pulse1 = KI861, pulse2 = KI866, pulse3 = KI871, waist = KI907, height = KI834),
+    by = "unique_id"
+  ) %>%
+  mutate(survey_year = 2006)
+
+# Preview the cleaned 2006 data
+glimpse(joined_demo_2006)
+
+```
+
+---
+
+### Combine 2006-2016 HRS Core Data
+
+```{r}
+
+#Joining all years by stacking 
+full_demo = rbind(joined_demo_2016, joined_demo_2014, joined_demo_2012, joined_demo_2010, joined_demo_2008, joined_demo_2006)
+
+# Preview Full Demo
+glimpse(full_demo)
+
+```
+
+---
+
+## Loading In Biomarker Data
+
+---
+
+
+### Load 2006 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2006 HRS Biomarker Data
+#####################
+
+# Set path to 2006 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr06"))
+
+# Load biomarker data
+bio_2006 <- read.SAScii("BIOMK06BL_R.da", "BIOMK06BL_R.sas")
+
+# Add unique ID and select variables of interest
+bio_2006_trim <- bio_2006 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(unique_id, A1C = KA1C_ADJ, HDL = KHDL_ADJ, CRP = KCRP_ADJ) %>%
+  mutate(survey_year = 2006)
+
+# Preview 2006 Biomarker Data
+glimpse(bio_2006_trim)
+
+```
+
+---
+
+### Load 2008 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2008 HRS Biomarker Data
+#####################
+
+# Set path to 2008 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr08"))
+
+# Load biomarker data
+bio_2008 <- read.SAScii("BIOMK08BL_R.da", "BIOMK08BL_R.sas")
+
+# Add unique ID and select variables of interest
+bio_2008_trim <- bio_2008 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(
+    unique_id,
+    A1C = LA1CBIOS,
+    HDL = LHDLBIOS_ADJ,
+    CRP = LCRP_ADJ
+  ) %>%
+  mutate(survey_year = 2008)
+
+# Preview 2008 Biomarker Data
+glimpse(bio_2008_trim)
+
+```
+
+---
+
+### Load 2010 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2010 HRS Biomarker Data
+#####################
+
+# Set path to 2010 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr10"))
+
+# Load biomarker data
+bio_2010 <- read.SAScii("BIOMK10BL_R.da", "BIOMK10BL_R.sas")
+
+# Add unique ID and select variables of interest
+bio_2010_trim <- bio_2010 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(
+    unique_id,
+    A1C = MA1C_ADJ,
+    HDL = MHDL_ADJ,
+    CRP = MCRP_ADJ
+  ) %>%
+  mutate(survey_year = 2010)
+
+# Preview 2010 Biomarker Data
+glimpse(bio_2010_trim)
+
+```
+
+---
+
+### Load 2012 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2012 HRS Biomarker Data
+#####################
+
+# Set path to 2012 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr12"))
+
+# Load biomarker data
+bio_2012 <- read.SAScii("BIOMK12BL_R.da", "BIOMK12BL_R.sas")
+
+# Add unique ID and select relevant variables
+bio_2012_trim <- bio_2012 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(
+    unique_id,
+    A1C = NA1C_ADJ,
+    HDL = NHDL_ADJ,
+    CRP = NCRP_ADJ
+  ) %>%
+  mutate(survey_year = 2012)
+
+# Preview 2012 Biomarker Data
+glimpse(bio_2012_trim)
+
+```
+
+---
+
+### Load 2014 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2014 HRS Biomarker Data
+#####################
+
+# Set path to 2014 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/BIOMK14BL"))
+
+# Load biomarker data
+bio_2014 <- read.SAScii("BIOMK14BL.da", "BIOMK14BL.sas")
+
+# Add unique ID and select relevant variables
+bio_2014_trim <- bio_2014 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(
+    unique_id,
+    A1C = OA1C_ADJ,
+    HDL = OHDL_ADJ,
+    CRP = OCRP_ADJ
+  ) %>%
+  mutate(survey_year = 2014)
+
+# Preview 2014 Biomarker Data
+glimpse(bio_2014_trim)
+
+```
+
+---
+
+### Load 2016 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2016 HRS Biomarker Data
+#####################
+
+# Set path to 2016 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/BIOMK16BL"))
+
+# Load biomarker data
+bio_2016 <- read.SAScii("BIOMK16BL_R.da", "BIOMK16BL_R.sas")
+
+# Add unique ID and select relevant variables
+bio_2016_trim <- bio_2016 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(
+    unique_id,
+    A1C = PA1C_ADJ,
+    HDL = PHDL_ADJ,
+    CRP = PCRP_ADJ
+  ) %>%
+  mutate(survey_year = 2016)
+
+# Preview 2016 Biomarker Data
+glimpse(bio_2016_trim)
+
+```
+
+---
+
+### Combine 2006-2016 HRS Biomarker Data
+
+```{r}
+
+full_bio = rbind(bio_2006_trim,bio_2008_trim, bio_2010_trim, bio_2012_trim, bio_2014_trim,bio_2016_trim)
+
+#Preview Combined Biomarker Data
+glimpse(full_bio)
+
+```
+
+```{r}
+
+#Combine Bio and Demo full data 
+full_demo = full_demo%>%mutate(id_year = paste(unique_id,survey_year,sep = "_"))
+full_bio = full_bio%>%mutate(id_year = paste(unique_id,survey_year,sep = "_"))
+full_data = full_demo%>%left_join(full_bio%>%select(id_year,A1C,HDL,CRP,survey_year), by = "id_year")
+
+# Preview 
+glimpse(full_data)
+
+```
+
+---
+
+## Create Allostatic Load Variable
+
+```{r}
+
+#####################
+# Allostatic Load Calculation
+#####################
+
+# Rename survey_year.x back to survey_year
+full_data <- full_data %>%
+  rename(survey_year = survey_year.x)
+
+# Add derived variables: WHtR and age
+full_data <- full_data %>%
+  mutate(
+    WHtR = waist / height,
+    age = survey_year - birth_year
+  )
+
+
+# Create function to calculate pulse_clean (mean of last two heartbeats)
+get_pulse <- function(pulse_dat) {
+  if ((is.na(pulse_dat[2]) + is.na(pulse_dat[3])) == 0) {
+    return(mean(pulse_dat[2], pulse_dat[3]))
+  } else {
+    return(mean(pulse_dat, na.rm = TRUE))
+  }
+}
+
+full_data$pulse_clean <- apply(full_data %>% select(pulse1, pulse2, pulse3), MARGIN = 1, FUN = get_pulse)
+
+# Select complete biomarker cases for computing cutoffs
+allostatic_biomarker_dat <- na.omit(full_data %>% select(WHtR, A1C, HDL, CRP, pulse_clean, id_year))
+
+# Function to compute binary risk scores and sum into al_score
+get_allostatic_nums <- function(data) {
+  WHtR_risk_threshold   <- quantile(data$WHtR, 0.75)
+  a1c_risk_threshold    <- quantile(data$A1C, 0.75)
+  hdl_risk_threshold    <- quantile(data$HDL, 0.25)
+  crp_risk_threshold    <- quantile(data$CRP, 0.75)
+  pulse_risk_threshold  <- quantile(data$pulse_clean, 0.75)
+
+  WHtR_score   <- data$WHtR > WHtR_risk_threshold
+  a1c_score    <- data$A1C > a1c_risk_threshold
+  hdl_score    <- data$HDL < hdl_risk_threshold
+  crp_score    <- data$CRP > crp_risk_threshold
+  pulse_score  <- data$pulse_clean > pulse_risk_threshold
+
+  return(WHtR_score + a1c_score + hdl_score + crp_score + pulse_score)
+}
+
+allostatic_biomarker_dat$al_score <- get_allostatic_nums(allostatic_biomarker_dat)
+
+# Rejoin to larger dataset
+full_data <- full_data %>%
+  left_join(allostatic_biomarker_dat %>% select(al_score, id_year), by = "id_year")
+
+# Trim to final dataset
+full_trim <- full_data %>% select(
+  id_year, unique_id, survey_year, age, sex, birth_year, race, ethnicity,
+  WHtR, A1C, HDL, CRP, pulse_clean, al_score
+)
+
+# Add individual binary biomarker risk score columns (as integers)
+full_trim$A1C_risk_score    <- as.integer(full_trim$A1C > quantile(full_trim$A1C, 0.75, na.rm = TRUE))
+full_trim$CRP_risk_score    <- as.integer(full_trim$CRP > quantile(full_trim$CRP, 0.75, na.rm = TRUE))
+full_trim$pulse_risk_score  <- as.integer(full_trim$pulse_clean > quantile(full_trim$pulse_clean, 0.75, na.rm = TRUE))
+full_trim$HDL_risk_score    <- as.integer(full_trim$HDL < quantile(full_trim$HDL, 0.25, na.rm = TRUE))
+full_trim$WHtR_risk_score   <- as.integer(full_trim$WHtR > quantile(full_trim$WHtR, 0.75, na.rm = TRUE))
+
+# Add biomarker count (non-missing)
+trim_dat <- full_trim[, c(
+  "WHtR_risk_score", "CRP_risk_score", "pulse_risk_score",
+  "HDL_risk_score", "A1C_risk_score"
+)]
+full_trim$biomarker_count <- rowSums(!is.na(trim_dat))
+
+# Preview the final dataset
+glimpse(full_trim)
+```
+
+---
+
+### Save and Export Prepared HRS Data
+
+Export the cleaned dataset for future use in your preferred format. Below are examples using both `write.csv()` and `saveRDS()`: 
+
+```{r}
+
+# write.csv(full_trim, "name_your_hrs_dataset.csv")
+# Example: write.csv(full_trim, "hrs_allostatic_load_data.csv")
+
+# saveRDS(full_trim, "name_your_hrs_dataset.rds")
+# Example: saveRDS(full_trim, "hrs_allostatic_load_data.rds")
+
+```
+
+
+
+

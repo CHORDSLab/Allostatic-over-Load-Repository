@@ -1,0 +1,12 @@
+# Emphasize R
+*.R linguist-detectable
+*.Rmd linguist-language=R
+
+# De-emphasize non-code files
+*.txt linguist-documentation
+*.pdf linguist-documentation
+*.da linguist-documentation
+*.sas linguist-documentation
+*.sps linguist-documentation
+*.do linguist-documentation
+*.dct linguist-documentation

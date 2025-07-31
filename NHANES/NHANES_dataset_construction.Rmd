@@ -1,0 +1,909 @@
+---
+title: "NHANES Allostatic (over)Load Dataset Construction"
+subtitle: "CHORDS Lab – Washington State University"
+author: 
+  - "Jason Cross"
+  - "Mariah Bergquist"
+  - "Maya Dietrich"
+  - "William Ripplinger"
+  - "Owen Williams"
+  - "Shawna Beese"
+date: "Last updated: 2025-07-20"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+
+## Overview
+
+This R Markdown script walks through the creation of a dataset for allostatic (over)load research using data from the [National Health and Nutrition Examination Survey (NHANES).](https://www.cdc.gov/nchs/nhanes/).
+
+⚠️ As noted in the [`NHANES_data_guide.md`](../data_access/NHANES_data_guide.md), this script uses the `nhanesA` package to programmatically access NHANES data, rather than relying on manual downloads.
+
+
+---
+
+## Setup & Libraries
+
+First, make sure you've installed the `tidyverse` and `nhanesA` packages. If you haven’t installed them yet, run the following commands in your console:
+
+```{r, eval=FALSE}
+install.packages("nhanesA")
+install.packages("tidyverse")
+```
+
+Once you've installed `tidyverse` and `nhanesA` successfully, load both packages.
+
+```{r load-libraries, echo=TRUE}
+# Load required libraries
+library(tidyverse)
+library(nhanesA)
+```
+
+
+---
+
+## Part 1 – Download, Clean, and Combine NHANES Survey Cycles (1999–2023)
+
+In this section, we’ll load NHANES survey cycles from 1999–2023, clean key variables, and combine them into a unified dataset.
+
+---
+
+### Load 2021-2023 NHANES Data
+
+```{r}
+
+#####################
+# Load 2021-2023 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_2123 <- nhanes("DEMO_L") %>%
+  transmute(
+    SEQN,
+    survey_years = "2021-2023",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1,
+    race_w_nh_asian = RIDRETH3
+  )
+
+# 2. Download and clean lab data
+lab_2123 <- list(
+  nhanes("GHB_L"),
+  nhanes("HDL_L"),
+  nhanes("HSCRP_L")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXHSCRP,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_2123 <- nhanes("BPXO_L") %>%
+  left_join(nhanes("BMX_L"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXOPLS3,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_2123 <- nhanes_2123 %>%
+  left_join(lab_2123, by = "SEQN") %>%
+  left_join(exam_2123, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race, race_w_nh_asian)
+
+# Preview the cleaned data
+glimpse(nhanes_2123)
+
+```
+
+---
+
+### Load 2017-2020 (Pre-Pandemic) NHANES Data
+
+> ⚠️ **Note:** The NHANES program suspended data collection in March 2020 due to the COVID-19 pandemic. Because the 2019–2020 cycle was not fully completed or nationally representative on its own, data from this period were combined with 2017–2018 to create a single 2017–March 2020 pre-pandemic dataset. For details and analytic guidance, see the [NHANES 2017–March 2020 Pre-pandemic overview](https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/OverviewBrief.aspx?Cycle=2017-2020).
+
+
+```{r}
+
+#####################
+# Load 2017-2020 (Pre-Pandemic) NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_1720PP <- nhanes("P_DEMO") %>%
+  transmute(
+    SEQN,
+    survey_years = "2017-2020 (Pre-Pandemic)",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1,
+    race_w_nh_asian = RIDRETH3
+  )
+
+# 2. Download and clean lab data
+lab_1720PP <- list(
+  nhanes("P_GHB"),
+  nhanes("P_HDL"),
+  nhanes("P_HSCRP")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXHSCRP,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_1720PP <- nhanes("P_BPXO") %>%
+  left_join(nhanes("P_BMX"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXOPLS3,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_1720PP <- nhanes_1720PP %>%
+  left_join(lab_1720PP, by = "SEQN") %>%
+  left_join(exam_1720PP, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race, race_w_nh_asian)
+
+# Preview the cleaned data
+glimpse(nhanes_1720PP)
+
+```
+
+---
+
+### Load 2017-2018 NHANES Data
+
+```{r}
+
+#####################
+# Load 2017-2018 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_1718 <- nhanes("DEMO_J") %>%
+  transmute(
+    SEQN,
+    survey_years = "2017-2018",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1,
+    race_w_nh_asian = RIDRETH3
+  )
+
+# 2. Download and clean lab data
+lab_1718 <- list(
+  nhanes("GHB_J"),
+  nhanes("HDL_J"),
+  nhanes("HSCRP_J")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXHSCRP,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_1718 <- nhanes("BPX_J") %>%
+  left_join(nhanes("BMX_J"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_1718 <- nhanes_1718 %>%
+  left_join(lab_1718, by = "SEQN") %>%
+  left_join(exam_1718, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race, race_w_nh_asian)
+
+# Preview the cleaned data
+glimpse(nhanes_1718)
+
+```
+
+---
+
+### Load 2015-2016 NHANES Data
+
+```{r}
+
+#####################
+# Load 2015-2016 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_1516 <- nhanes("DEMO_I") %>%
+  transmute(
+    SEQN,
+    survey_years = "2015-2016",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1,
+    race_w_nh_asian = RIDRETH3
+  )
+
+# 2. Download and clean lab data
+lab_1516 <- list(
+  nhanes("GHB_I"),
+  nhanes("HDL_I"),
+  nhanes("HSCRP_I")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXHSCRP,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_1516 <- nhanes("BPX_I") %>%
+  left_join(nhanes("BMX_I"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_1516 <- nhanes_1516 %>%
+  left_join(lab_1516, by = "SEQN") %>%
+  left_join(exam_1516, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race, race_w_nh_asian)
+
+# Preview the cleaned data
+glimpse(nhanes_1516)
+
+```
+
+---
+
+### Load 2013-2014 NHANES Data
+
+> ⚠️ **Note:** C-reactive protein (CRP) data are *not* available for the 2013–2014 NHANES cycle. This survey wave did not include CRP in its lab measurements.
+
+
+```{r}
+
+#####################
+# Load 2013-2014 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_1314 <- nhanes("DEMO_H") %>%
+  transmute(
+    SEQN,
+    survey_years = "2013-2014",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1,
+    race_w_nh_asian = RIDRETH3
+  )
+
+# 2. Download and clean lab data
+lab_1314 <- list(
+  nhanes("GHB_H"),
+  nhanes("HDL_H")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_1314 <- nhanes("BPX_H") %>%
+  left_join(nhanes("BMX_H"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_1314 <- nhanes_1314 %>%
+  left_join(lab_1314, by = "SEQN") %>%
+  left_join(exam_1314, by = "SEQN") %>%
+  select(survey_years, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race, race_w_nh_asian)
+
+# Preview the cleaned data
+glimpse(nhanes_1314)
+
+```
+
+
+---
+
+### Load 2011-2012 NHANES Data
+
+> ⚠️ **Note:** C-reactive protein (CRP) data are *not* available for the 2011–2012 NHANES cycle. This survey wave did not include CRP in its lab measurements.
+
+```{r}
+
+#####################
+# Load 2011-2012 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_1112 <- nhanes("DEMO_G") %>%
+  transmute(
+    SEQN,
+    survey_years = "2011-2012",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1,
+    race_w_nh_asian = RIDRETH3
+  )
+
+# 2. Download and clean lab data
+lab_1112 <- list(
+  nhanes("GHB_G"),
+  nhanes("HDL_G")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_1112 <- nhanes("BPX_G") %>%
+  left_join(nhanes("BMX_G"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_1112 <- nhanes_1112 %>%
+  left_join(lab_1112, by = "SEQN") %>%
+  left_join(exam_1112, by = "SEQN") %>%
+  select(survey_years, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race, race_w_nh_asian)
+
+# Preview the cleaned data
+glimpse(nhanes_1112)
+
+```
+
+---
+
+### Load 2009-2010 NHANES Data
+
+> ⚠️ **Note:** The more detailed race/ethnicity variable `RIDRETH3` (which includes a separate category for Non-Hispanic Asian participants) is *not* available for NHANES survey cycles from 1999 to 2009. During these years, only the original `RIDRETH1` variable was collected.
+
+```{r}
+
+#####################
+# Load 2009-2010 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_0910 <- nhanes("DEMO_F") %>%
+  transmute(
+    SEQN,
+    survey_years = "2009-2010",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1
+  )
+
+# 2. Download and clean lab data
+lab_0910 <- list(
+  nhanes("GHB_F"),
+  nhanes("HDL_F"),
+  nhanes("CRP_F")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXCRP,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_0910 <- nhanes("BPX_F") %>%
+  left_join(nhanes("BMX_F"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_0910 <- nhanes_0910 %>%
+  left_join(lab_0910, by = "SEQN") %>%
+  left_join(exam_0910, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race)
+
+# Preview the cleaned data
+glimpse(nhanes_0910)
+
+```
+
+---
+
+### Load 2007-2008 NHANES Data
+
+> ⚠️ **Note:** The more detailed race/ethnicity variable `RIDRETH3` (which includes a separate category for Non-Hispanic Asian participants) is *not* available for NHANES survey cycles from 1999 to 2009. During these years, only the original `RIDRETH1` variable was collected.
+
+```{r}
+
+#####################
+# Load 2007-2008 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_0708 <- nhanes("DEMO_E") %>%
+  transmute(
+    SEQN,
+    survey_years = "2007-2008",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1
+  )
+
+# 2. Download and clean lab data
+lab_0708 <- list(
+  nhanes("GHB_E"),
+  nhanes("HDL_E"),
+  nhanes("CRP_E")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXCRP,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_0708 <- nhanes("BPX_E") %>%
+  left_join(nhanes("BMX_E"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_0708 <- nhanes_0708 %>%
+  left_join(lab_0708, by = "SEQN") %>%
+  left_join(exam_0708, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race)
+
+# Preview the cleaned data
+glimpse(nhanes_0708)
+
+```
+
+---
+
+### Load 2005-2006 NHANES Data
+
+> ⚠️ **Note:** The more detailed race/ethnicity variable `RIDRETH3` (which includes a separate category for Non-Hispanic Asian participants) is *not* available for NHANES survey cycles from 1999 to 2009. During these years, only the original `RIDRETH1` variable was collected.
+
+```{r}
+
+#####################
+# Load 2005-2006 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_0506 <- nhanes("DEMO_D") %>%
+  transmute(
+    SEQN,
+    survey_years = "2005-2006",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1
+  )
+
+# 2. Download and clean lab data
+lab_0506 <- list(
+  nhanes("GHB_D"),
+  nhanes("HDL_D"),
+  nhanes("CRP_D")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXCRP,
+    A1C = LBXGH,
+    HDL = LBDHDD
+  )
+
+# 3. Download and clean exam data
+exam_0506 <- nhanes("BPX_D") %>%
+  left_join(nhanes("BMX_D"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_0506 <- nhanes_0506 %>%
+  left_join(lab_0506, by = "SEQN") %>%
+  left_join(exam_0506, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race)
+
+# Preview the cleaned data
+glimpse(nhanes_0506)
+
+```
+
+---
+
+### Load 2003-2004 NHANES Data
+
+> ⚠️ **Note:** The more detailed race/ethnicity variable `RIDRETH3` (which includes a separate category for Non-Hispanic Asian participants) is *not* available for NHANES survey cycles from 1999 to 2009. During these years, only the original `RIDRETH1` variable was collected.
+
+```{r}
+
+#####################
+# Load 2003-2004 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_0304 <- nhanes("DEMO_C") %>%
+  transmute(
+    SEQN,
+    survey_years = "2003-2004",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1
+  )
+
+# 2. Download and clean lab data
+lab_0304 <- list(
+  nhanes("L10_C"),
+  nhanes("L13_C"),
+  nhanes("L11_C")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXCRP,
+    A1C = LBXGH,
+    HDL = LBXHDD
+  )
+
+# 3. Download and clean exam data
+exam_0304 <- nhanes("BPX_C") %>%
+  left_join(nhanes("BMX_C"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_0304 <- nhanes_0304 %>%
+  left_join(lab_0304, by = "SEQN") %>%
+  left_join(exam_0304, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race)
+
+# Preview the cleaned data
+glimpse(nhanes_0304)
+
+```
+
+---
+
+### Load 2001-2002 NHANES Data
+
+> ⚠️ **Note:** The more detailed race/ethnicity variable `RIDRETH3` (which includes a separate category for Non-Hispanic Asian participants) is *not* available for NHANES survey cycles from 1999 to 2009. During these years, only the original `RIDRETH1` variable was collected.
+
+```{r}
+
+#####################
+# Load 2001-2002 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_0102 <- nhanes("DEMO_B") %>%
+  transmute(
+    SEQN,
+    survey_years = "2001-2002",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1
+  )
+
+# 2. Download and clean lab data
+lab_0102 <- list(
+  nhanes("L10_B"),
+  nhanes("L13_B"),
+  nhanes("L11_B")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXCRP,
+    A1C = LBXGH,
+    HDL = LBDHDL
+  )
+
+# 3. Download and clean exam data
+exam_0102 <- nhanes("BPX_B") %>%
+  left_join(nhanes("BMX_B"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_0102 <- nhanes_0102 %>%
+  left_join(lab_0102, by = "SEQN") %>%
+  left_join(exam_0102, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race)
+
+# Preview the cleaned data
+glimpse(nhanes_0102)
+
+```
+
+---
+
+### Load 1999-2000 NHANES Data
+
+> ⚠️ **Note:** The more detailed race/ethnicity variable `RIDRETH3` (which includes a separate category for Non-Hispanic Asian participants) is *not* available for NHANES survey cycles from 1999 to 2009. During these years, only the original `RIDRETH1` variable was collected.
+
+```{r}
+
+#####################
+# Load 1999-2000 NHANES Data
+#####################
+
+# 1. Download and clean demographics
+nhanes_9900 <- nhanes("DEMO") %>%
+  transmute(
+    SEQN,
+    survey_years = "1999-2000",
+    gender = RIAGENDR,
+    age = RIDAGEYR,
+    race = RIDRETH1
+  )
+
+# 2. Download and clean lab data
+lab_9900 <- list(
+  nhanes("LAB10"),
+  nhanes("LAB13"),
+  nhanes("LAB11")
+) %>%
+  reduce(left_join, by = "SEQN") %>%
+  transmute(
+    SEQN,
+    CRP = LBXCRP,
+    A1C = LBXGH,
+    HDL = LBDHDL
+  )
+
+# 3. Download and clean exam data
+exam_9900 <- nhanes("BPX") %>%
+  left_join(nhanes("BMX"), by = "SEQN") %>%
+  transmute(
+    SEQN,
+    PULSE = BPXPLS,
+    waist = BMXWAIST,
+    height = BMXHT
+  )
+
+# 4. Merge all datasets
+nhanes_9900 <- nhanes_9900 %>%
+  left_join(lab_9900, by = "SEQN") %>%
+  left_join(exam_9900, by = "SEQN") %>%
+  select(survey_years, CRP, A1C, HDL, PULSE, waist, height, SEQN, gender, age, race)
+
+# Preview the cleaned data
+glimpse(nhanes_9900)
+
+```
+
+---
+
+### Combine 1999-2023 NHANES Data
+
+```{r}
+
+nhanes_merged <- NULL
+
+nhanes_list <- list(nhanes_9900, 
+                    nhanes_0102, 
+                    nhanes_0304, 
+                    nhanes_0506, 
+                    nhanes_0708, 
+                    nhanes_0910, 
+                    nhanes_1112, 
+                    nhanes_1314, 
+                    nhanes_1516, 
+                    nhanes_1718, 
+                    nhanes_1720PP, 
+                    nhanes_2123
+)
+
+# Merge all NHANES survey cycles
+nhanes_merged <- bind_rows(nhanes_list)
+
+# Preview the merged data
+glimpse(nhanes_merged)
+```
+
+---
+
+
+## Part 2 – Derive Biomarker Risk Indicators & Compute Allostatic Load
+
+Now that we’ve combined multiple NHANES cycles into a single dataset, we’re ready to compute risk thresholds and calculate our main outcome: allostatic (over)load. This section includes:
+
+- Computing Waist-to-Height Ratio (`WHtR`) from `waist` and `height`
+- Creating `biomarker_count`, the number of non-missing biomarker values per observation (0–5)
+- Computing cycle-specific quartile thresholds for each biomarker
+- Creating risk indicators for `CRP`, `A1C`, `HDL`, `PULSE`, and `WHtR`
+- Summing individual risk scores into a total Allostatic Load score (`al_score`, 0–5)
+
+
+```{r}
+# Add new columns
+nhanes_merged <- nhanes_merged %>%
+  mutate(
+    al_score = NA, CRP_risk_threshold = NA, CRP_risk_score = NA,
+    A1C_risk_threshold = NA, A1C_risk_score = NA,
+    HDL_risk_threshold = NA, HDL_risk_score = NA,
+    PULSE_risk_threshold = NA, PULSE_risk_score = NA, WHtR = NA, WHtR_risk_threshold = NA, WHtR_risk_score = NA, biomarker_count = NA
+  ) %>%
+  # Reorder columns
+  select(
+    SEQN, survey_years, al_score, age, race, race_w_nh_asian, gender,
+    CRP, CRP_risk_threshold, CRP_risk_score,
+    A1C, A1C_risk_threshold, A1C_risk_score,
+    HDL, HDL_risk_threshold, HDL_risk_score,
+    PULSE, PULSE_risk_threshold, PULSE_risk_score,
+    waist, height, WHtR, WHtR_risk_threshold, WHtR_risk_score, biomarker_count
+    )
+
+# Preview with new columns added
+glimpse(nhanes_merged)
+```
+
+
+---
+
+
+### Calculate Quartile Risk Thresholds
+
+Next, we’ll compute biomarker risk thresholds by survey cycle (`survey_years`). For `CRP`, `A1C`, `PULSE` and `WHtR`, the 75th percentile (Q3) is used. For `HDL`, where lower values indicate higher risk, the 25th percentile (Q1) is used. Thresholds are stored in `CRP_risk_threshold`, `A1C_risk_threshold`, `PULSE_risk_threshold`, `WHtR_Q3` and `HDL_risk_threshold`, respectively.
+
+```{r}
+# Compute Waist-to-Height Ratio (`WHtR`) from `waist` and `height`
+nhanes_merged <- nhanes_merged %>%
+  mutate(WHtR = waist / height)
+
+# Compute `biomarker_count` – number of non-missing biomarker values (0–5)
+nhanes_merged <- nhanes_merged %>%
+  mutate(
+    biomarker_count = rowSums(!is.na(select(., CRP, A1C, HDL, PULSE, WHtR)))
+  )
+
+# Compute quartile risk thresholds grouped by `survey_years`
+quartile_thresholds <- nhanes_merged %>%
+  group_by(survey_years) %>%
+  summarise(
+    CRP_risk_threshold = quantile(CRP, 0.75, na.rm = TRUE),
+    A1C_risk_threshold = quantile(A1C, 0.75, na.rm = TRUE),
+    PULSE_risk_threshold = quantile(PULSE, 0.75, na.rm = TRUE),
+    HDL_risk_threshold = quantile(HDL, 0.25, na.rm = TRUE),
+    WHtR_risk_threshold = quantile(WHtR, 0.75, na.rm = TRUE)
+  )
+
+# Use mutate to directly populate the pre-existing columns with the quartile values
+nhanes_merged <- nhanes_merged %>%
+  mutate(
+    CRP_risk_threshold = quartile_thresholds$CRP_risk_threshold[match(survey_years, quartile_thresholds$survey_years)],
+    A1C_risk_threshold = quartile_thresholds$A1C_risk_threshold[match(survey_years, quartile_thresholds$survey_years)],
+    PULSE_risk_threshold = quartile_thresholds$PULSE_risk_threshold[match(survey_years, quartile_thresholds$survey_years)],
+    HDL_risk_threshold = quartile_thresholds$HDL_risk_threshold[match(survey_years, quartile_thresholds$survey_years)],
+    WHtR_risk_threshold = quartile_thresholds$WHtR_risk_threshold[match(survey_years, quartile_thresholds$survey_years)]
+  )
+
+# Preview the updated dataset
+glimpse(nhanes_merged)
+```
+
+
+### Calculate Risk Scores
+
+Risk scores are assigned based on biomarker thresholds. For `CRP`, `A1C`, `PULSE` and `WHtR`, a score of 1 (high risk) is given if the value meets or exceeds the Q3 threshold; otherwise, the score is 0. For `HDL`, a score of 1 is given if the value is at or below the Q1 threshold. Scores are set to `NA` if the value or its threshold is missing.
+
+
+```{r}
+# Compute risk scores based on thresholds
+nhanes_merged <- nhanes_merged %>%
+  mutate(
+    CRP_risk_score = ifelse(!is.na(CRP) & !is.na(CRP_risk_threshold) & CRP >= CRP_risk_threshold, 1, ifelse(!is.na(CRP), 0, NA)),
+    A1C_risk_score = ifelse(!is.na(A1C) & !is.na(A1C_risk_threshold) & A1C >= A1C_risk_threshold, 1, ifelse(!is.na(A1C), 0, NA)),
+    PULSE_risk_score = ifelse(!is.na(PULSE) & !is.na(PULSE_risk_threshold) & PULSE >= PULSE_risk_threshold, 1, ifelse(!is.na(PULSE), 0, NA)),
+    HDL_risk_score = ifelse(!is.na(HDL) & !is.na(HDL_risk_threshold) & HDL <= HDL_risk_threshold, 1, ifelse(!is.na(HDL), 0, NA)),
+    WHtR_risk_score = ifelse(!is.na(WHtR) & !is.na(WHtR_risk_threshold) & WHtR <= WHtR_risk_threshold, 1, ifelse(!is.na(WHtR), 0, NA))
+    )
+
+# Preview the updated dataset
+glimpse(nhanes_merged)
+
+```
+
+---
+
+### Calculate Allostatic (over)Load
+
+Allostatic (over)load scores (`al_score`) are computed by summing individual risk indicators (`CRP_risk_score`, `A1C_risk_score`, `HDL_risk_score`, `PULSE_risk_score`, `WHtR_risk_score`). If any of these risk scores are missing (`NA`), the overall AL score is also set to `NA`.
+
+```{r}
+# Compute `al_score` by summing risk scores, leaving `NA` if any risk score is `NA`
+nhanes_merged <- nhanes_merged %>%
+  mutate(
+    al_score = ifelse(
+      rowSums(is.na(select(., CRP_risk_score, A1C_risk_score, PULSE_risk_score, WHtR_risk_score, HDL_risk_score))) > 0,
+      NA_real_,  # Return NA if any risk score is NA for the row
+      rowSums(select(., CRP_risk_score, A1C_risk_score, PULSE_risk_score, WHtR_risk_score, HDL_risk_score), na.rm = TRUE)
+    )
+  )
+
+# Preview the updated dataset
+glimpse(nhanes_merged)
+
+```
+
+---
+
+### Save and Export Prepared NHANES Data
+
+Export the cleaned dataset for future use in your preferred format. Below are examples using both `write.csv()` and `saveRDS()`: 
+
+```{r}
+
+# write.csv(nhanes_merged, "name_your_nhanes_dataset.csv")
+# Example: write.csv(nhanes_merged, "nhanes_allostatic_load_data.csv")
+
+# saveRDS(nhanes_merged, "name_your_nhanes_dataset.rds")
+# Example: saveRDS(nhanes_merged, "nhanes_allostatic_load_data.rds")
+
+
+```
+
+
