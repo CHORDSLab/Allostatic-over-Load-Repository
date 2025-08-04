@@ -23,7 +23,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This R Markdown script walks through the creation of a dataset for allostatic (over)load research using data from the [National Health and Nutrition Examination Survey (NHANES).](https://www.cdc.gov/nchs/nhanes/).
 
-⚠️ As noted in the [`NHANES_data_guide.md`](../data_access/NHANES_data_guide.md), this script uses the `nhanesA` package to programmatically access NHANES data, rather than relying on manual downloads.
+⚠️ As noted in the [`NHANES_access_guide.md`](https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/NHANES/NHANES_access_guide.md), this script uses the `nhanesA` package to programmatically access NHANES data, rather than relying on manual downloads.
 
 
 ---
