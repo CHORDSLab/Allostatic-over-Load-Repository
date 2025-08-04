@@ -47,6 +47,8 @@ Timeline: September 2024-present
 - Posit Cloud project space created for HRS project: January 15, 2025
 - NHANES project: first project meeting with Dr. Shawna Beese and team: February 4, 2025.
 - HRS data standardization and code/documentation review initiated by Jason Cross: June 6, 2025 
+- Preprint protocol manuscript posted to *medRxiv*: July 31, 2025
+- Initial public GitHub repository published: July 31, 2025
 
 
 ## Project Objectives  
