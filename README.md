@@ -76,7 +76,7 @@ Each biomarker is coded as high or normal risk based on top/bottom quartiles or 
 
 
 ## Usage 
-**When using this protocol, please cite**:  
+**When using this protocol, workflow, or any portion of this repository, please cite:**:  
 Beese S, Cross J, Rice D, & DeJong TL (2025). *Allostatic (over)Load Measurement: Workflow and repository*. [https://doi.org/10.1101/2025.07.31.25332519](https://doi.org/10.1101/2025.07.31.25332519)
 
 
