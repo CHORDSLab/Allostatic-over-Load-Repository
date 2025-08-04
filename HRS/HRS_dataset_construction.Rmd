@@ -22,13 +22,13 @@ This R Markdown script walks through the construction of a dataset for allostati
 
 ⚠️ Before continuing, make sure you’ve downloaded and organized the required raw data. See [`HRS_access_guide.md`](HRS_access_guide.md) for instructions.
 
-<img src="images/hrs_data_prep/step01_data_prep.png" alt="HRS Data Prep" width="80%"/> 
+<img src="https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/HRS/images/step01_data_prep.png" alt="HRS Data Prep" width="80%"/> 
 
 <br>
 
 The [`HRS_access_guide.md`](HRS_access_guide.md) will walk you through downloading the necessary public and restricted-access datasets and arranging them in a folder structure compatible with this script.
 
-<img src="images/step04_hrs_final.png" alt="Final Folder Structure" width="80%"/> 
+<img src="https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/HRS/images/step04_hrs_final.png" alt="Final Folder Structure" width="80%"/> 
 
 ---
 
