@@ -12,6 +12,4 @@ This changelog provides a chronological record of structural, documentation, and
 ### [2025-07-31]
 - Removed `/_TEMP_internal_docs` from `/docs` directory
 - Archived pre-launch repository version; removed pre-launch notes from `CHANGELOG.md` and `TODO.md`
-
-### [2025-08-04]
 - Published public-facing version of the repository (changed visibility from private to public)
