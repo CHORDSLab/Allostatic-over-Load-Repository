@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This R Markdown script walks through the construction of a dataset for allostatic (over)load research using data from the [Health and Retirement Study (HRS)](https://hrs.isr.umich.edu/).
 
-⚠️ Before continuing, make sure you’ve downloaded and organized the required raw data. See [`HRS_access_guide.md`](HRS_access_guide.md) for instructions.
+⚠️ Before continuing, make sure you’ve downloaded and organized the required raw data. See [`HRS_access_guide.md`](https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/HRS/HRS_access_guide.md) for instructions.
 
 <img src="https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/HRS/images/step01_data_prep.png" alt="HRS Data Prep" width="80%"/> 
 
