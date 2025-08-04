@@ -3,9 +3,9 @@
 # CHORDSLab / Allostatic-over-Load-Repository 
 >[labs.wsu.edu/chords](https://labs.wsu.edu/chords/)
 
-_Last updated: July 31, 2025_
+_Last updated: August 4, 2025_
 
-This repository contains guides and R scripts for generating datasets using [our data processing approach to allostatic (over)load](https://replace-with-actual-doi-url) from the following data sources:
+This repository contains guides and R scripts for generating datasets using [our data processing approach to allostatic (over)load](https://doi.org/10.1101/2025.07.31.25332519) from the following data sources:
 
 - NIH *All of Us* Research Program data repository  
 - Health and Retirement Study (HRS)  
@@ -69,16 +69,13 @@ Each biomarker is coded as high or normal risk based on top/bottom quartiles or 
 
 
 ## Protocol
- Our lab protocol manuscript will be available [here](https://replace-with-actual-doi-url) upon publication.  
- [https://doi.org/xxxxxx](https://replace-with-actual-doi-url)  
->*This section will be updated with the final DOI and expanded description once the article is published.*
+ Our lab’s protocol for calculating allostatic (over)load is described in detail in our [preprint on medRxiv](https://doi.org/10.1101/2025.07.31.25332519). It outlines our rationale, data sources, and step-by-step processing workflow for generating analysis-ready datasets from large-scale health surveys.
+ [https://doi.org/10.1101/2025.07.31.25332519](https://doi.org/10.1101/2025.07.31.25332519)  
 
 
 ## Usage 
 **When using this protocol, please cite**:  
-Beese S, Cross J, Rice D, & DeJong TL (2025). *CHORDS Lab Data Processing Approach and Repositories: Allostatic (over)load calculation*. [https://doi.org/xxxxxx](https://replace-with-actual-doi-url)
-
->*This citation will be updated with the final publication details once available.*
+Beese S, Cross J, Rice D, & DeJong TL (2025). *Allostatic (over)Load Measurement: Workflow and repository*. [https://doi.org/10.1101/2025.07.31.25332519](https://doi.org/10.1101/2025.07.31.25332519)
 
 
 ## Repository Contents

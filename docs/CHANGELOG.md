@@ -1,6 +1,6 @@
 # CHANGELOG
   
-_Last updated: July 31, 2025_
+_Last updated: August 4, 2025_
 
 ## Overview
 This changelog provides a chronological record of structural, documentation, and code-related changes made to the CHORDS Lab public repository to support transparency, version tracking, and reproducibility throughout the project lifecycle.
@@ -12,4 +12,6 @@ This changelog provides a chronological record of structural, documentation, and
 ### [2025-07-31]
 - Removed `/_TEMP_internal_docs` from `/docs` directory
 - Archived pre-launch repository version; removed pre-launch notes from `CHANGELOG.md` and `TODO.md`
+
+### [2025-08-04]
 - Published public-facing version of the repository (changed visibility from private to public)
