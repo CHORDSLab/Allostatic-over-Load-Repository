@@ -14,4 +14,4 @@ To run it, you will need to:
 
 Registration and access details are available on the [*All of Us* Researcher Workbench website](https://workbench.researchallofus.org/).  
 
-ℹ️ **Note:** A CHORDS Community Workspace within the NIH *All of Us* Researcher Workbench will be available soon. This will provide shared access to code and resources directly in the secure environment.
+> **Note:** A CHORDS Community Workspace within the NIH *All of Us* Researcher Workbench will be available soon. This will provide shared access to code and resources directly in the secure environment.
