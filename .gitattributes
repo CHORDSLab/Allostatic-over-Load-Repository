@@ -10,3 +10,5 @@
 *.sps linguist-documentation
 *.do linguist-documentation
 *.dct linguist-documentation
+*.html linguist-documentation
+*.ipynb linguist-documentation
