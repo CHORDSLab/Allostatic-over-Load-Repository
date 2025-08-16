@@ -13,3 +13,7 @@ This changelog provides a chronological record of structural, documentation, and
 - Removed `/_TEMP_internal_docs` from `/docs` directory
 - Archived pre-launch repository version; removed pre-launch notes from `CHANGELOG.md` and `TODO.md`
 - Published public-facing version of the repository (changed visibility from private to public)
+
+### [2025-08-15]
+- Added `NIH_All_of_Us_access_guide.md`, `NIH_All_of_Us_dataset_construction.ipynb`, and `NIH_All_of_Us_dataset_construction.html` to the `/NIH_All_of_Us` directory  
+- Updated `README.md` in the `/NIH_All_of_Us` directory  
