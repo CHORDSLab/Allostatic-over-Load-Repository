@@ -5,7 +5,7 @@
 
 _Last updated: [2025-08-15]_
 
-The code in [NIH_All_of_Us_dataset_construction.ipynb](`NIH_All_of_Us_dataset_construction.ipynb`) can **only** be used within the secure NIH *All of Us* Researcher Workbench environment.  
+The code in [`NIH_All_of_Us_dataset_construction.ipynb`](NIH_All_of_Us_dataset_construction.ipynb) can **only** be used within the secure NIH *All of Us* Researcher Workbench environment.  
 
 To run it, you will need to:  
 - Be a **registered NIH *All of Us* researcher**  
