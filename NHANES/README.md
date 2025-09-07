@@ -1,7 +1,7 @@
 # NHANES
 *CHORDS Lab – Washington State University*
 
-_Last updated: [2025-07-24]_
+_Last updated: [2025-09-05]_
 
 ## Contents
 
@@ -38,9 +38,3 @@ The following conventions are used for variable names:
 | Derived summary vars    | Lowercase with snake_case           | `al_score`, `biomarker_count`                 |
 
 All variables are harmonized across cycles. Raw NHANES variables were renamed as needed for clarity and consistency.
-
-## Final Dataset
-
-The screenshot below shows the final `nhanes_merged` dataset, as previewed in RStudio using the `glimpse()` function. This dataset is constructed in [`NHANES_dataset_construction.Rmd`](NHANES_dataset_construction.Rmd).
-
-<img src="images/glimpse_nhanes_merged.png" alt="glimpse of nhanes_merged dataset" width="100%" />

@@ -17,3 +17,6 @@ This changelog provides a chronological record of structural, documentation, and
 ### [2025-08-15]
 - Added `NIH_All_of_Us_access_guide.md`, `NIH_All_of_Us_dataset_construction.ipynb`, and `NIH_All_of_Us_dataset_construction.pdf` to the `/NIH_All_of_Us` directory  
 - Updated `README.md` in the `/NIH_All_of_Us` directory  
+
+### [2025-09-05]
+- Removed dataset preview screenshots from `HRS/README.md` and `NHANES/README.md`.

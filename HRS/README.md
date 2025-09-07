@@ -1,7 +1,7 @@
 # HRS
 *CHORDS Lab – Washington State University*  
 
-_Last updated: [2025-07-15]_  
+_Last updated: [2025-09-05]_  
 
 ## Contents  
 
@@ -41,9 +41,3 @@ The following conventions are used for variable names:
 
 
 All variables are harmonized across waves. Original HRS variable names were renamed as needed for clarity and consistency.
-
-## Final Dataset  
-
-Below is a preview of the final HRS `full_trim` dataset, as shown using the `glimpse()` function in RStudio. This dataset is created in [`HRS_dataset_construction.Rmd`](HRS_dataset_construction.Rmd).
-
-<img src="images/glimpse_hrs_full.png" alt="glimpse of HRS dataset" width="100%" />
