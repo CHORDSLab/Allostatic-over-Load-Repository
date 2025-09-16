@@ -18,5 +18,11 @@ This changelog provides a chronological record of structural, documentation, and
 - Added `NIH_All_of_Us_access_guide.md`, `NIH_All_of_Us_dataset_construction.ipynb`, and `NIH_All_of_Us_dataset_construction.pdf` to the `/NIH_All_of_Us` directory  
 - Updated `README.md` in the `/NIH_All_of_Us` directory  
 
-### [2025-09-05]
-- Removed dataset preview screenshots from `HRS/README.md` and `NHANES/README.md`.
+---
+
+### [2025-09-04]
+- Removed dataset preview screenshots containing sensitive information from `HRS/README.md`.
+- Set repository visibility to private for ~10 days to allow internal review and remediation before restoring public access.
+
+### [2025-09-13] (or whichever day we go live again)
+- Restored repository visibility to public following completion of internal review and remediation.
