@@ -40,4 +40,4 @@ The following conventions are used for variable names:
 | Summary variables        | Lowercase with snake_case            | `al_score`, `biomarker_count`                  |
 
 
-All variables are harmonized across waves. Original HRS variable names were renamed as needed for clarity and consistency.
+All variables are harmonized across waves. Original HRS variable names were renamed as needed for clarity and consistency. 

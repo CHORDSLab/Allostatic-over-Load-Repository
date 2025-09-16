@@ -37,4 +37,4 @@ The following conventions are used for variable names:
 | Identifiers             | Retained from NHANES                | `SEQN`                                        |
 | Derived summary vars    | Lowercase with snake_case           | `al_score`, `biomarker_count`                 |
 
-All variables are harmonized across cycles. Raw NHANES variables were renamed as needed for clarity and consistency.
+All variables are harmonized across cycles. Raw NHANES variables were renamed as needed for clarity and consistency. 
