@@ -1,6 +1,6 @@
 # CHANGELOG
   
-_Last updated: August 4, 2025_
+_Last updated: August 15, 2025_
 
 ## Overview
 This changelog provides a chronological record of structural, documentation, and code-related changes made to the CHORDS Lab public repository to support transparency, version tracking, and reproducibility throughout the project lifecycle.
