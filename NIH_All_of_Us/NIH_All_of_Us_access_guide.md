@@ -13,5 +13,3 @@ To run it, you will need to:
 - Run the code from **within your secure NIH Workbench**  
 
 Registration and access details are available on the [*All of Us* Researcher Workbench website](https://workbench.researchallofus.org/).  
-
-> **Note:** A CHORDS Community Workspace within the NIH *All of Us* Researcher Workbench will be available soon. This will provide shared access to code and resources directly in the secure environment.
