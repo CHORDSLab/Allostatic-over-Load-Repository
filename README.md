@@ -1,9 +1,12 @@
 [<img src="./docs/images/lab_logo_banner.png" alt="CHORDS Lab Logo" width="80%"/>](https://labs.wsu.edu/chords/)  
 
-# CHORDSLab / Allostatic-over-Load-Repository 
+# CHORDSLab / Allostatic-over-Load-Repository  
 >[labs.wsu.edu/chords](https://labs.wsu.edu/chords/)
 
-_Last updated: August 4, 2025_
+**Current Version: v2.0.0**  
+_Last updated: February 22, 2026_
+
+> v2.0.0 implements survey-weighted biomarker quartile thresholds for NHANES and HRS datasets and includes validation, documentation, and reproducibility improvements.
 
 This repository contains guides and R scripts for generating datasets using [our data processing approach to allostatic (over)load](https://doi.org/10.1101/2025.07.31.25332519) from the following data sources:
 

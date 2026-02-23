@@ -1,7 +1,7 @@
 # HRS
 *CHORDS Lab – Washington State University*  
 
-_Last updated: [2025-09-05]_  
+_Last updated: [2026-02-22]_  
 
 ## Contents  
 
@@ -25,19 +25,23 @@ _Last updated: [2025-09-05]_
   - `HRS_final_dataset`: Full list of variables in the constructed dataset, including all derived variables from [`HRS_dataset_construction.Rmd`](HRS_dataset_construction.Rmd)  
   >Useful for tracing each variable’s origin, understanding coding schemes, and reviewing how variables were cleaned or computed.
 
-  [<img src="images/hrs_data_dict.png" alt="preview of HRS data dictionary" width="50%" />](HRS_data_dictionary.xlsx)  
-
 ## Variable Naming Conventions  
 
 The following conventions are used for variable names:  
 
-| Category                 | Convention                           | Examples                                       |
-|--------------------------|--------------------------------------|------------------------------------------------|
-| Raw biomarkers           | Uppercase unless derived             | `CRP`, `A1C`, `HDL`, `WHtR`, `pulse_clean`     |
-| Risk scores              | Biomarker name + `_risk_score`       | `CRP_risk_score`, `pulse_risk_score`           |
-| General demographics     | Lowercase with snake_case            | `age`, `sex`, `survey_year`                    |
-| Identifiers              | Lowercase with snake_case            | `unique_id`, `id_year`                         |
-| Summary variables        | Lowercase with snake_case            | `al_score`, `biomarker_count`                  |
+| Category                 | Convention                               | Examples                                       |
+|--------------------------|------------------------------------------|------------------------------------------------|
+| Raw biomarkers           | Uppercase unless derived                 | `CRP`, `A1C`, `HDL`, `WHtR`, `pulse_clean`     |
+| Risk thresholds          | Biomarker name + `_risk_threshold`       | `CRP_risk_threshold`, `pulse_risk_threshold`   |
+| Risk scores              | Biomarker name + `_risk_score`           | `CRP_risk_score`, `pulse_risk_score`           |
+| Demographics             | Lowercase with snake_case                | `age`, `sex`, `birth_year`                     |
+| Identifiers              | Lowercase with snake_case                | `unique_id`, `id_year`                         |
+| Summary variables        | Lowercase with snake_case                | `al_score`, `biomarker_count`                  |
+| Sampling weights         | Prefix WT_ (uppercase, wave-harmonized)  | `WT_RESP`, `WT_PM`, `WT_BIO`, `WT_LBQ`         |
+| Survey design variables  | Uppercase (original HRS naming retained) | `STRATUM`, `SECU`                              |   
 
-
-All variables are harmonized across waves. Original HRS variable names were renamed as needed for clarity and consistency. 
+## Additional Notes
+- All variables are harmonized across waves (2006–2016).
+- Original HRS variable names are documented in the data dictionary and were renamed as needed for clarity and cross-wave consistency.
+- Sampling weights and design variables are retained in their original scale and structure to support proper survey-weighted analyses.
+- Risk thresholds and risk scores are computed separately for each survey cycle using weighted quartiles.  

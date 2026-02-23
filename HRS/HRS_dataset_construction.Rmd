@@ -5,7 +5,7 @@ author:
 - "David Rice"
 - "Jason Cross"
 - "Shawna Beese"
-date: "Last updated: 2025-07-15"
+date: "Last updated: 2026-02-21"
 output: html_document
 ---
 
@@ -20,36 +20,38 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This R Markdown script walks through the construction of a dataset for allostatic (over)load research using data from the [Health and Retirement Study (HRS)](https://hrs.isr.umich.edu/).
 
-⚠️ Before continuing, make sure you’ve downloaded and organized the required raw data. See [`HRS_access_guide.md`](https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/HRS/HRS_access_guide.md) for instructions.
+⚠️ Before continuing, make sure you’ve downloaded and organized the required raw data. See [`HRS_access_guide.md`](https://github.com/CHORDSLab/Allostatic-over-Load-Repository/blob/main/HRS/HRS_access_guide.md) for instructions.  
 
-<img src="https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/HRS/images/step01_data_prep.png" alt="HRS Data Prep" width="80%"/> 
-
-<br>
-
-The [`HRS_access_guide.md`](HRS_access_guide.md) will walk you through downloading the necessary public and restricted-access datasets and arranging them in a folder structure compatible with this script.
-
-<img src="https://github.com/CHORDSAdmin/Allostatic-over-Load-Repository/blob/main/HRS/images/step04_hrs_final.png" alt="Final Folder Structure" width="80%"/> 
+The [`HRS_access_guide.md`](https://github.com/CHORDSLab/Allostatic-over-Load-Repository/blob/main/HRS/HRS_access_guide.md) will walk you through downloading the necessary public and restricted-access datasets and arranging them in a folder structure compatible with this script.
 
 ---
 
 ### What You’ll Need to Run This Script
 
 - Raw HRS data, organized as described in the guide
-- R environment with the following packages: `SAScii`, `dplyr`, `stringr`
+- R environment with the following packages: `SAScii`, `dplyr`, `stringr`, `Hmisc`
 - Familiarity with HRS data formats and .sas scripts
 
 💡 Reminder: Access to biomarker files requires registration and approval from HRS. Passphrases for restricted datasets are provided by HRS via email upon approval.
 
 ## Setup & Libraries
 
+First, make sure you’ve installed the required packages. If you haven’t installed them yet, run the following commands in your console:
+
 ```{r install-packages, eval=FALSE}
-install.packages(c("SAScii", "dplyr", "stringr"))
+# install.packages("SAScii")
+# install.packages("dplyr")
+# install.packages("stringr")
+# install.packages("Hmisc")
 ```
+
+Once installed, load the required libraries:
 
 ```{r libraries}
 library(SAScii)
 library(dplyr)
 library(stringr)
+library(Hmisc)
 ```
 
 ---
@@ -58,18 +60,23 @@ library(stringr)
 
 ```{r file-path}
 # Set to the location of your "HRS Data Products" folder
-path <- "../path_to_your_folder/HRS Data Products/" # Replace with the full path to your local "HRS Data Products" folder
+path <- "PATH/TO/YOUR/HRS Data Products" # Replace with the full path to your local "HRS Data Products" folder
 ```
-
 
 ---
 
-### Load 2016 HRS Core Data
+## Part 1 – Load, Clean, and Combine HRS Waves (2006-2016)
+
+In this section, we’ll load HRS waves from 2006-2016, clean key variables, and combine them into a unified dataset.
+
+---
+
+### Load 2016 HRS Core + Tracker Data
 
 ```{r}
 
 #####################
-# Load 2016 HRS Core Data
+# Load 2016 HRS Core + Tracker Data
 #####################
 
 # Set path to 2016 HRS Core folder
@@ -86,34 +93,54 @@ preload_2016 <- add_id(preload_2016)
 demo_2016    <- add_id(demo_2016)
 meas_2016    <- add_id(meas_2016)
 
+# Load weights + design vars from Cross-Wave Tracker File
+tracker_2016 <- read.SAScii(
+  file.path(path, "trk2022v1/TRK2022TR_R.da"),
+  file.path(path, "trk2022v1/TRK2022TR_R.sas")
+) %>%
+  add_id() %>%
+  transmute(
+    unique_id,
+
+    # module-specific weights (2016) from Cross-Wave Tracker File
+    WT_RESP = PWGTR,     # 2016 weight: respondent level
+    WT_PM   = PPMWGTR,   # 2016 physical measures subsample weight
+    WT_BIO  = PBIOWGTR,  # 2016 biomarker subsample weight
+    WT_LBQ  = PLBWGTR,   # 2016 leave-behind questionnaire subsample weight
+
+    # design variables
+    STRATUM = STRATUM,   # Stratum ID
+    SECU    = SECU       # Sampling Error Computation Unit
+  )
+
 # Join and select relevant variables
-joined_demo_2016 <- preload_2016 %>%
+joined_core_2016 <- preload_2016 %>%
   select(unique_id, sex = PX060_R, birth_year = PX067_R) %>%
   left_join(
-    demo_2016 %>%
-      select(unique_id, race = PB089M1M, ethnicity = PB029M1M),
+    demo_2016 %>% select(unique_id, race = PB089M1M, ethnicity = PB029M1M),
     by = "unique_id"
   ) %>%
   left_join(
-    meas_2016 %>%
-      select(unique_id, pulse1 = PI861, pulse2 = PI866, pulse3 = PI871, waist = PI907, height = PI834),
+    meas_2016 %>% select(unique_id, pulse1 = PI861, pulse2 = PI866, pulse3 = PI871,
+                         waist = PI907, height = PI834),
     by = "unique_id"
   ) %>%
+  left_join(tracker_2016, by = "unique_id") %>%   # <-- weights/design vars
   mutate(survey_year = 2016)
 
-# Preview the cleaned 2016 data
-glimpse(joined_demo_2016)
+# Preview the joined 2016 Core + Tracker data
+glimpse(joined_core_2016)
 
 ```
 
 ---
 
-### Load 2014 HRS Core Data
+### Load 2014 HRS Core + Tracker Data
 
 ```{r}
 
 #####################
-# Load 2014 HRS Core Data
+# Load 2014 HRS Core + Tracker Data
 #####################
 
 # Set path to 2014 HRS Core folder
@@ -130,34 +157,54 @@ preload_2014 <- add_id(preload_2014)
 demo_2014    <- add_id(demo_2014)
 meas_2014    <- add_id(meas_2014)
 
+# Load weights + design vars from Cross-Wave Tracker File
+tracker_2014 <- read.SAScii(
+  file.path(path, "trk2022v1/TRK2022TR_R.da"),
+  file.path(path, "trk2022v1/TRK2022TR_R.sas")
+) %>%
+  add_id() %>%
+  transmute(
+    unique_id,
+
+    # module-specific weights (2014) from Cross-Wave Tracker File
+    WT_RESP = OWGTR,     # 2014 weight: respondent level
+    WT_PM   = OPMWGTR,   # 2014 physical measures subsample weight
+    WT_BIO  = OBIOWGTR,  # 2014 biomarker subsample weight
+    WT_LBQ  = OLBWGTR,   # 2014 leave-behind questionnaire subsample weight
+
+    # design variables
+    STRATUM = STRATUM,   # Stratum ID
+    SECU    = SECU       # Sampling Error Computation Unit
+  )
+
 # Join and select relevant variables
-joined_demo_2014 <- preload_2014 %>%
+joined_core_2014 <- preload_2014 %>%
   select(unique_id, sex = OX060_R, birth_year = OX067_R) %>%
   left_join(
-    demo_2014 %>%
-      select(unique_id, race = OB089M1M, ethnicity = OB029M1M),
+    demo_2014 %>% select(unique_id, race = OB089M1M, ethnicity = OB029M1M),
     by = "unique_id"
   ) %>%
   left_join(
-    meas_2014 %>%
-      select(unique_id, pulse1 = OI861, pulse2 = OI866, pulse3 = OI871, waist = OI907, height = OI834),
+    meas_2014 %>% select(unique_id, pulse1 = OI861, pulse2 = OI866, pulse3 = OI871,
+                         waist = OI907, height = OI834),
     by = "unique_id"
   ) %>%
+  left_join(tracker_2014, by = "unique_id") %>%   # <-- weights/design vars
   mutate(survey_year = 2014)
 
-# Preview the cleaned 2014 data
-glimpse(joined_demo_2014)
+# Preview the joined 2014 Core + Tracker data
+glimpse(joined_core_2014)
 
 ```
 
 ---
 
-### Load 2012 HRS Core Data
+### Load 2012 HRS Core + Tracker Data
 
 ```{r}
 
 #####################
-# Load 2012 HRS Core Data
+# Load 2012 HRS Core + Tracker Data
 #####################
 
 # Set path to 2012 HRS Core folder
@@ -174,29 +221,49 @@ preload_2012 <- add_id(preload_2012)
 demo_2012    <- add_id(demo_2012)
 meas_2012    <- add_id(meas_2012)
 
+# Load weights + design vars from Cross-Wave Tracker File
+tracker_2012 <- read.SAScii(
+  file.path(path, "trk2022v1/TRK2022TR_R.da"),
+  file.path(path, "trk2022v1/TRK2022TR_R.sas")
+) %>%
+  add_id() %>%
+  transmute(
+    unique_id,
+
+    # module-specific weights (2012) from Cross-Wave Tracker File
+    WT_RESP = NWGTR,     # 2012 weight: respondent level
+    WT_PM   = NPMWGTR,   # 2012 physical measures subsample weight
+    WT_BIO  = NBIOWGTR,  # 2012 biomarker subsample weight
+    WT_LBQ  = NLBWGTR,   # 2012 leave-behind questionnaire subsample weight
+
+    # design variables
+    STRATUM = STRATUM,   # Stratum ID
+    SECU    = SECU       # Sampling Error Computation Unit
+  )
+
 # Join and select relevant variables
-joined_demo_2012 <- preload_2012 %>%
+joined_core_2012 <- preload_2012 %>%
   select(unique_id, sex = NX060_R, birth_year = NX067_R) %>%
   left_join(
-    demo_2012 %>%
-      select(unique_id, race = NB089M1M, ethnicity = NB029M1M),
+    demo_2012 %>% select(unique_id, race = NB089M1M, ethnicity = NB029M1M),
     by = "unique_id"
   ) %>%
   left_join(
-    meas_2012 %>%
-      select(unique_id, pulse1 = NI861, pulse2 = NI866, pulse3 = NI871, waist = NI907, height = NI834),
+    meas_2012 %>% select(unique_id, pulse1 = NI861, pulse2 = NI866, pulse3 = NI871,
+                         waist = NI907, height = NI834),
     by = "unique_id"
   ) %>%
+  left_join(tracker_2012, by = "unique_id") %>%   # <-- weights/design vars
   mutate(survey_year = 2012)
 
-# Preview the cleaned 2012 data
-glimpse(joined_demo_2012)
+# Preview the joined 2012 Core + Tracker data
+glimpse(joined_core_2012)
 
 ```
 
 ---
 
-### Load 2010 HRS Core Data
+### Load 2010 HRS Core + Tracker Data
 
 ```{r}
 
@@ -218,29 +285,49 @@ preload_2010 <- add_id(preload_2010)
 demo_2010    <- add_id(demo_2010)
 meas_2010    <- add_id(meas_2010)
 
+# Load weights + design vars from Cross-Wave Tracker File
+tracker_2010 <- read.SAScii(
+  file.path(path, "trk2022v1/TRK2022TR_R.da"),
+  file.path(path, "trk2022v1/TRK2022TR_R.sas")
+) %>%
+  add_id() %>%
+  transmute(
+    unique_id,
+
+    # module-specific weights (2010) from Cross-Wave Tracker File
+    WT_RESP = MWGTR,     # 2010 weight: respondent level
+    WT_PM   = MPMWGTR,   # 2010 physical measures subsample weight
+    WT_BIO  = MBIOWGTR,  # 2010 biomarker subsample weight
+    WT_LBQ  = MLBWGTR,   # 2010 leave-behind questionnaire subsample weight
+
+    # design variables
+    STRATUM = STRATUM,   # Stratum ID
+    SECU    = SECU       # Sampling Error Computation Unit
+  )
+
 # Join and select relevant variables
-joined_demo_2010 <- preload_2010 %>%
+joined_core_2010 <- preload_2010 %>%
   select(unique_id, sex = MX060_R, birth_year = MX067_R) %>%
   left_join(
-    demo_2010 %>%
-      select(unique_id, race = MB089M1M, ethnicity = MB029M1M),
+    demo_2010 %>% select(unique_id, race = MB089M1M, ethnicity = MB029M1M),
     by = "unique_id"
   ) %>%
   left_join(
-    meas_2010 %>%
-      select(unique_id, pulse1 = MI861, pulse2 = MI866, pulse3 = MI871, waist = MI907, height = MI834),
+    meas_2010 %>% select(unique_id, pulse1 = MI861, pulse2 = MI866, pulse3 = MI871,
+                         waist = MI907, height = MI834),
     by = "unique_id"
   ) %>%
+  left_join(tracker_2010, by = "unique_id") %>%   # <-- weights/design vars
   mutate(survey_year = 2010)
 
-# Preview the cleaned 2010 data
-glimpse(joined_demo_2010)
+# Preview the joined 2010 Core + Tracker data
+glimpse(joined_core_2010)
 
 ```
 
 ---
 
-### Load 2008 HRS Core Data
+### Load 2008 HRS Core + Tracker Data
 
 ```{r}
 
@@ -262,29 +349,49 @@ preload_2008 <- add_id(preload_2008)
 demo_2008    <- add_id(demo_2008)
 meas_2008    <- add_id(meas_2008)
 
+# Load weights + design vars from Cross-Wave Tracker File
+tracker_2008 <- read.SAScii(
+  file.path(path, "trk2022v1/TRK2022TR_R.da"),
+  file.path(path, "trk2022v1/TRK2022TR_R.sas")
+) %>%
+  add_id() %>%
+  transmute(
+    unique_id,
+
+    # module-specific weights (2008) from Cross-Wave Tracker File
+    WT_RESP = LWGTR,     # 2008 weight: respondent level
+    WT_PM   = LPMWGTR,   # 2008 physical measures subsample weight
+    WT_BIO  = LBIOWGTR,  # 2008 biomarker subsample weight
+    WT_LBQ  = LLBWGTR,   # 2008 leave-behind questionnaire subsample weight
+
+    # design variables
+    STRATUM = STRATUM,   # Stratum ID
+    SECU    = SECU       # Sampling Error Computation Unit
+  )
+
 # Join and select relevant variables
-joined_demo_2008 <- preload_2008 %>%
+joined_core_2008 <- preload_2008 %>%
   select(unique_id, sex = LX060_R, birth_year = LX067_R) %>%
   left_join(
-    demo_2008 %>%
-      select(unique_id, race = LB089M1M, ethnicity = LB029M1M),
+    demo_2008 %>% select(unique_id, race = LB089M1M, ethnicity = LB029M1M),
     by = "unique_id"
   ) %>%
   left_join(
-    meas_2008 %>%
-      select(unique_id, pulse1 = LI861, pulse2 = LI866, pulse3 = LI871, waist = LI907, height = LI834),
+    meas_2008 %>% select(unique_id, pulse1 = LI861, pulse2 = LI866, pulse3 = LI871,
+                         waist = LI907, height = LI834),
     by = "unique_id"
   ) %>%
+  left_join(tracker_2008, by = "unique_id") %>%   # <-- weights/design vars
   mutate(survey_year = 2008)
 
-# Preview the cleaned 2008 data
-glimpse(joined_demo_2008)
+# Preview the joined 2008 Core + Tracker data
+glimpse(joined_core_2008)
 
 ```
 
 ---
 
-### Load 2006 HRS Core Data
+### Load 2006 HRS Core + Tracker Data
 
 ```{r}
 
@@ -306,37 +413,57 @@ preload_2006 <- add_id(preload_2006)
 demo_2006    <- add_id(demo_2006)
 meas_2006    <- add_id(meas_2006)
 
+# Load weights + design vars from Cross-Wave Tracker File
+tracker_2006 <- read.SAScii(
+  file.path(path, "trk2022v1/TRK2022TR_R.da"),
+  file.path(path, "trk2022v1/TRK2022TR_R.sas")
+) %>%
+  add_id() %>%
+  transmute(
+    unique_id,
+
+    # module-specific weights (2006) from Cross-Wave Tracker File
+    WT_RESP = KWGTR,     # 2006 weight: respondent level
+    WT_PM   = KPMWGTR,   # 2006 physical measures subsample weight
+    WT_BIO  = KBIOWGTR,  # 2006 biomarker subsample weight
+    WT_LBQ  = KLBWGTR,   # 2006 leave-behind questionnaire subsample weight
+
+    # design variables
+    STRATUM = STRATUM,   # Stratum ID
+    SECU    = SECU       # Sampling Error Computation Unit
+  )
+
 # Join and select relevant variables
-joined_demo_2006 <- preload_2006 %>%
+joined_core_2006 <- preload_2006 %>%
   select(unique_id, sex = KX060_R, birth_year = KX067_R) %>%
   left_join(
-    demo_2006 %>%
-      select(unique_id, race = KB089M1M, ethnicity = KB029M1M),
+    demo_2006 %>% select(unique_id, race = KB089M1M, ethnicity = KB029M1M),
     by = "unique_id"
   ) %>%
   left_join(
-    meas_2006 %>%
-      select(unique_id, pulse1 = KI861, pulse2 = KI866, pulse3 = KI871, waist = KI907, height = KI834),
+    meas_2006 %>% select(unique_id, pulse1 = KI861, pulse2 = KI866, pulse3 = KI871,
+                         waist = KI907, height = KI834),
     by = "unique_id"
   ) %>%
+  left_join(tracker_2006, by = "unique_id") %>%   # <-- weights/design vars
   mutate(survey_year = 2006)
 
-# Preview the cleaned 2006 data
-glimpse(joined_demo_2006)
+# Preview the joined 2006 Core + Tracker data
+glimpse(joined_core_2006)
 
 ```
 
 ---
 
-### Combine 2006-2016 HRS Core Data
+### Combine 2006-2016 HRS Core + Tracker Data
 
 ```{r}
 
-#Joining all years by stacking 
-full_demo = rbind(joined_demo_2016, joined_demo_2014, joined_demo_2012, joined_demo_2010, joined_demo_2008, joined_demo_2006)
+#Join all years by stacking 
+full_core = rbind(joined_core_2016, joined_core_2014, joined_core_2012, joined_core_2010, joined_core_2008, joined_core_2006)
 
-# Preview Full Demo
-glimpse(full_demo)
+# Preview Full Core + Tracker data
+glimpse(full_core)
 
 ```
 
@@ -346,125 +473,33 @@ glimpse(full_demo)
 
 ---
 
-
-### Load 2006 HRS Biomarker Data
-
-```{r}
-
-#####################
-# Load 2006 HRS Biomarker Data
-#####################
-
-# Set path to 2006 HRS Biomarker folder
-setwd(file.path(path, "Biomarker Data/biomkr06"))
-
-# Load biomarker data
-bio_2006 <- read.SAScii("BIOMK06BL_R.da", "BIOMK06BL_R.sas")
-
-# Add unique ID and select variables of interest
-bio_2006_trim <- bio_2006 %>%
-  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
-  select(unique_id, A1C = KA1C_ADJ, HDL = KHDL_ADJ, CRP = KCRP_ADJ) %>%
-  mutate(survey_year = 2006)
-
-# Preview 2006 Biomarker Data
-glimpse(bio_2006_trim)
-
-```
-
----
-
-### Load 2008 HRS Biomarker Data
+### Load 2016 HRS Biomarker Data
 
 ```{r}
 
 #####################
-# Load 2008 HRS Biomarker Data
+# Load 2016 HRS Biomarker Data
 #####################
 
-# Set path to 2008 HRS Biomarker folder
-setwd(file.path(path, "Biomarker Data/biomkr08"))
+# Set path to 2016 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/BIOMK16BL"))
 
 # Load biomarker data
-bio_2008 <- read.SAScii("BIOMK08BL_R.da", "BIOMK08BL_R.sas")
-
-# Add unique ID and select variables of interest
-bio_2008_trim <- bio_2008 %>%
-  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
-  select(
-    unique_id,
-    A1C = LA1CBIOS,
-    HDL = LHDLBIOS_ADJ,
-    CRP = LCRP_ADJ
-  ) %>%
-  mutate(survey_year = 2008)
-
-# Preview 2008 Biomarker Data
-glimpse(bio_2008_trim)
-
-```
-
----
-
-### Load 2010 HRS Biomarker Data
-
-```{r}
-
-#####################
-# Load 2010 HRS Biomarker Data
-#####################
-
-# Set path to 2010 HRS Biomarker folder
-setwd(file.path(path, "Biomarker Data/biomkr10"))
-
-# Load biomarker data
-bio_2010 <- read.SAScii("BIOMK10BL_R.da", "BIOMK10BL_R.sas")
-
-# Add unique ID and select variables of interest
-bio_2010_trim <- bio_2010 %>%
-  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
-  select(
-    unique_id,
-    A1C = MA1C_ADJ,
-    HDL = MHDL_ADJ,
-    CRP = MCRP_ADJ
-  ) %>%
-  mutate(survey_year = 2010)
-
-# Preview 2010 Biomarker Data
-glimpse(bio_2010_trim)
-
-```
-
----
-
-### Load 2012 HRS Biomarker Data
-
-```{r}
-
-#####################
-# Load 2012 HRS Biomarker Data
-#####################
-
-# Set path to 2012 HRS Biomarker folder
-setwd(file.path(path, "Biomarker Data/biomkr12"))
-
-# Load biomarker data
-bio_2012 <- read.SAScii("BIOMK12BL_R.da", "BIOMK12BL_R.sas")
+bio_2016 <- read.SAScii("BIOMK16BL_R.da", "BIOMK16BL_R.sas")
 
 # Add unique ID and select relevant variables
-bio_2012_trim <- bio_2012 %>%
+bio_2016_trim <- bio_2016 %>%
   mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
   select(
     unique_id,
-    A1C = NA1C_ADJ,
-    HDL = NHDL_ADJ,
-    CRP = NCRP_ADJ
+    A1C = PA1C_ADJ,
+    HDL = PHDL_ADJ,
+    CRP = PCRP_ADJ
   ) %>%
-  mutate(survey_year = 2012)
+  mutate(survey_year = 2016)
 
-# Preview 2012 Biomarker Data
-glimpse(bio_2012_trim)
+# Preview 2016 Biomarker Data
+glimpse(bio_2016_trim)
 
 ```
 
@@ -502,33 +537,124 @@ glimpse(bio_2014_trim)
 
 ---
 
-### Load 2016 HRS Biomarker Data
+### Load 2012 HRS Biomarker Data
 
 ```{r}
 
 #####################
-# Load 2016 HRS Biomarker Data
+# Load 2012 HRS Biomarker Data
 #####################
 
-# Set path to 2016 HRS Biomarker folder
-setwd(file.path(path, "Biomarker Data/BIOMK16BL"))
+# Set path to 2012 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr12"))
 
 # Load biomarker data
-bio_2016 <- read.SAScii("BIOMK16BL_R.da", "BIOMK16BL_R.sas")
+bio_2012 <- read.SAScii("BIOMK12BL_R.da", "BIOMK12BL_R.sas")
 
 # Add unique ID and select relevant variables
-bio_2016_trim <- bio_2016 %>%
+bio_2012_trim <- bio_2012 %>%
   mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
   select(
     unique_id,
-    A1C = PA1C_ADJ,
-    HDL = PHDL_ADJ,
-    CRP = PCRP_ADJ
+    A1C = NA1C_ADJ,
+    HDL = NHDL_ADJ,
+    CRP = NCRP_ADJ
   ) %>%
-  mutate(survey_year = 2016)
+  mutate(survey_year = 2012)
 
-# Preview 2016 Biomarker Data
-glimpse(bio_2016_trim)
+# Preview 2012 Biomarker Data
+glimpse(bio_2012_trim)
+
+```
+
+---
+
+### Load 2010 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2010 HRS Biomarker Data
+#####################
+
+# Set path to 2010 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr10"))
+
+# Load biomarker data
+bio_2010 <- read.SAScii("BIOMK10BL_R.da", "BIOMK10BL_R.sas")
+
+# Add unique ID and select variables of interest
+bio_2010_trim <- bio_2010 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(
+    unique_id,
+    A1C = MA1C_ADJ,
+    HDL = MHDL_ADJ,
+    CRP = MCRP_ADJ
+  ) %>%
+  mutate(survey_year = 2010)
+
+# Preview 2010 Biomarker Data
+glimpse(bio_2010_trim)
+
+```
+
+---
+
+### Load 2008 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2008 HRS Biomarker Data
+#####################
+
+# Set path to 2008 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr08"))
+
+# Load biomarker data
+bio_2008 <- read.SAScii("BIOMK08BL_R.da", "BIOMK08BL_R.sas")
+
+# Add unique ID and select variables of interest
+bio_2008_trim <- bio_2008 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(
+    unique_id,
+    A1C = LA1CBIOS,
+    HDL = LHDLBIOS_ADJ,
+    CRP = LCRP_ADJ
+  ) %>%
+  mutate(survey_year = 2008)
+
+# Preview 2008 Biomarker Data
+glimpse(bio_2008_trim)
+
+```
+
+---
+
+### Load 2006 HRS Biomarker Data
+
+```{r}
+
+#####################
+# Load 2006 HRS Biomarker Data
+#####################
+
+# Set path to 2006 HRS Biomarker folder
+setwd(file.path(path, "Biomarker Data/biomkr06"))
+
+# Load biomarker data
+bio_2006 <- read.SAScii("BIOMK06BL_R.da", "BIOMK06BL_R.sas")
+
+# Add unique ID and select variables of interest
+bio_2006_trim <- bio_2006 %>%
+  mutate(unique_id = paste(HHID, PN, sep = "_")) %>%
+  select(unique_id, A1C = KA1C_ADJ, HDL = KHDL_ADJ, CRP = KCRP_ADJ) %>%
+  mutate(survey_year = 2006)
+
+# Preview 2006 Biomarker Data
+glimpse(bio_2006_trim)
 
 ```
 
@@ -538,28 +664,96 @@ glimpse(bio_2016_trim)
 
 ```{r}
 
-full_bio = rbind(bio_2006_trim,bio_2008_trim, bio_2010_trim, bio_2012_trim, bio_2014_trim,bio_2016_trim)
+full_bio = rbind(bio_2016_trim, bio_2014_trim, bio_2012_trim, bio_2010_trim, bio_2008_trim, bio_2006_trim)
 
 #Preview Combined Biomarker Data
 glimpse(full_bio)
 
 ```
 
+### Combine Full Biomarker and Core + Tracker Data
+
 ```{r}
 
-#Combine Bio and Demo full data 
-full_demo = full_demo%>%mutate(id_year = paste(unique_id,survey_year,sep = "_"))
-full_bio = full_bio%>%mutate(id_year = paste(unique_id,survey_year,sep = "_"))
-full_data = full_demo%>%left_join(full_bio%>%select(id_year,A1C,HDL,CRP,survey_year), by = "id_year")
+# Combine Biomarker and Core + Tracker Data
+full_core <- full_core %>% mutate(id_year = paste(unique_id, survey_year, sep = "_"))
+full_bio  <- full_bio  %>% mutate(id_year = paste(unique_id, survey_year, sep = "_"))
 
-# Preview 
+full_data <- full_core %>%
+  left_join(
+    full_bio %>% select(id_year, A1C, HDL, CRP),
+    by = "id_year"
+  )
+
 glimpse(full_data)
 
 ```
 
 ---
 
-## Create Allostatic Load Variable
+### Handle HRS special codes + set categorical variables as factors
+
+```{r}
+
+full_data <- full_data %>%
+  mutate(
+    # Pulse: recode non-substantive values and biologically implausible values to NA
+    across(
+      c(pulse1, pulse2, pulse3),
+      ~ if_else(.x %in% c(998, 999) | .x >= 200, NA_real_, .x)
+    ),
+
+    # Waist: values >= 99 are out-of-range and/or non-substantive (includes 993/998/999)
+    waist = if_else(waist >= 99, NA_real_, waist),
+
+    # Height: 98 (DK) and 99 (RF)
+    height = if_else(height >= 98, NA_real_, height),
+
+    # Race: recode non-substantive values, retain masked "Other" category (97)
+    race = if_else(race %in% c(98, 99), NA_real_, race),
+
+    # Ethnicity: recode non-substantive values, retain masked "Other Hispanic" category (7)
+    ethnicity = if_else(ethnicity %in% c(8, 9), NA_real_, ethnicity),
+
+    # Convert categorical variables to factors (after recodes)
+    sex = factor(sex, levels = c(1, 2), labels = c("Male", "Female")),
+    race = factor(race, levels = c(1, 2, 97), labels = c("White", "Black", "Other")),
+    ethnicity = factor(ethnicity, levels = c(1, 7), labels = c("Mexican American", "Other Hispanic"))
+  )
+
+# Preview
+glimpse(full_data)
+
+```
+
+### (Optional) Save / Reload Combined Dataset Before Allostatic Load Calculations
+
+Loading raw HRS `.da` files can be time-consuming. To avoid re-running earlier data import and cleaning steps, you may wish to save the combined dataset at this stage and reload it directly in future sessions.
+
+```{r}
+
+# (Optional) Save combined dataset before AL calculations
+# saveRDS(full_data, file.path(path, "hrs_combined_pre_AL.rds"))
+
+# To reload in a future session without re-running raw imports:
+# full_data <- readRDS(file.path(path, "hrs_combined_pre_AL.rds"))
+
+```
+
+---
+
+## Part 2 – Derive Biomarker Risk Indicators & Compute Allostatic Load
+
+Now that we’ve combined multiple HRS waves into a single dataset, we’re ready to compute risk thresholds and calculate our primary outcome: allostatic (over)load. This section includes:
+
+- Computing Waist-to-Height Ratio (`WHtR`) from `waist` and `height`
+- Creating `biomarker_count`, the number of non-missing biomarker values per observation (0–5)
+- Computing wave-specific weighted quartile thresholds for each biomarker (by `survey_year`)
+- Creating risk indicators for `CRP`, `A1C`, `HDL`, `pulse`, and `WHtR`
+- Summing individual risk scores into a total Allostatic Load score (`al_score`, 0–5)
+
+*Note:* This script uses HRS sampling weights to compute weighted percentile thresholds. It does not perform weighted inferential analyses (e.g., standard errors or hypothesis tests). Users conducting population-level inference should incorporate survey design variables (`STRATUM`, `SECU`) alongside the appropriate weights.
+
 
 ```{r}
 
@@ -567,9 +761,13 @@ glimpse(full_data)
 # Allostatic Load Calculation
 #####################
 
-# Rename survey_year.x back to survey_year
-full_data <- full_data %>%
-  rename(survey_year = survey_year.x)
+# Helper function for weighted quantiles:
+# Returns NA if a survey year has no valid observations or weights.
+wtd_q_safe <- function(x, w, p) {
+  ok <- !is.na(x) & !is.na(w) & w > 0
+  if (sum(ok) == 0) return(NA_real_)
+  as.numeric(Hmisc::wtd.quantile(x[ok], weights = w[ok], probs = p, na.rm = TRUE))
+}
 
 # Add derived variables: WHtR and age
 full_data <- full_data %>%
@@ -578,65 +776,81 @@ full_data <- full_data %>%
     age = survey_year - birth_year
   )
 
-
 # Create function to calculate pulse_clean (mean of last two heartbeats)
 get_pulse <- function(pulse_dat) {
   if ((is.na(pulse_dat[2]) + is.na(pulse_dat[3])) == 0) {
-    return(mean(pulse_dat[2], pulse_dat[3]))
+    return(mean(c(pulse_dat[2], pulse_dat[3])))
   } else {
     return(mean(pulse_dat, na.rm = TRUE))
   }
 }
 
-full_data$pulse_clean <- apply(full_data %>% select(pulse1, pulse2, pulse3), MARGIN = 1, FUN = get_pulse)
-
-# Select complete biomarker cases for computing cutoffs
-allostatic_biomarker_dat <- na.omit(full_data %>% select(WHtR, A1C, HDL, CRP, pulse_clean, id_year))
-
-# Function to compute binary risk scores and sum into al_score
-get_allostatic_nums <- function(data) {
-  WHtR_risk_threshold   <- quantile(data$WHtR, 0.75)
-  a1c_risk_threshold    <- quantile(data$A1C, 0.75)
-  hdl_risk_threshold    <- quantile(data$HDL, 0.25)
-  crp_risk_threshold    <- quantile(data$CRP, 0.75)
-  pulse_risk_threshold  <- quantile(data$pulse_clean, 0.75)
-
-  WHtR_score   <- data$WHtR > WHtR_risk_threshold
-  a1c_score    <- data$A1C > a1c_risk_threshold
-  hdl_score    <- data$HDL < hdl_risk_threshold
-  crp_score    <- data$CRP > crp_risk_threshold
-  pulse_score  <- data$pulse_clean > pulse_risk_threshold
-
-  return(WHtR_score + a1c_score + hdl_score + crp_score + pulse_score)
-}
-
-allostatic_biomarker_dat$al_score <- get_allostatic_nums(allostatic_biomarker_dat)
-
-# Rejoin to larger dataset
-full_data <- full_data %>%
-  left_join(allostatic_biomarker_dat %>% select(al_score, id_year), by = "id_year")
-
-# Trim to final dataset
-full_trim <- full_data %>% select(
-  id_year, unique_id, survey_year, age, sex, birth_year, race, ethnicity,
-  WHtR, A1C, HDL, CRP, pulse_clean, al_score
+full_data$pulse_clean <- apply(
+  full_data %>% select(pulse1, pulse2, pulse3),
+  MARGIN = 1,
+  FUN = get_pulse
 )
 
-# Add individual binary biomarker risk score columns (as integers)
-full_trim$A1C_risk_score    <- as.integer(full_trim$A1C > quantile(full_trim$A1C, 0.75, na.rm = TRUE))
-full_trim$CRP_risk_score    <- as.integer(full_trim$CRP > quantile(full_trim$CRP, 0.75, na.rm = TRUE))
-full_trim$pulse_risk_score  <- as.integer(full_trim$pulse_clean > quantile(full_trim$pulse_clean, 0.75, na.rm = TRUE))
-full_trim$HDL_risk_score    <- as.integer(full_trim$HDL < quantile(full_trim$HDL, 0.25, na.rm = TRUE))
-full_trim$WHtR_risk_score   <- as.integer(full_trim$WHtR > quantile(full_trim$WHtR, 0.75, na.rm = TRUE))
+# Compute weighted thresholds within each survey year
+thresholds <- full_data %>%
+  group_by(survey_year) %>%
+  summarise(
+    WHtR_risk_threshold  = wtd_q_safe(WHtR,        WT_PM,  0.75),
+    A1C_risk_threshold   = wtd_q_safe(A1C,         WT_BIO, 0.75),
+    HDL_risk_threshold   = wtd_q_safe(HDL,         WT_BIO, 0.25),
+    CRP_risk_threshold   = wtd_q_safe(CRP,         WT_BIO, 0.75),
+    pulse_risk_threshold = wtd_q_safe(pulse_clean, WT_PM,  0.75),
+    .groups = "drop"
+  )
 
-# Add biomarker count (non-missing)
-trim_dat <- full_trim[, c(
-  "WHtR_risk_score", "CRP_risk_score", "pulse_risk_score",
-  "HDL_risk_score", "A1C_risk_score"
-)]
-full_trim$biomarker_count <- rowSums(!is.na(trim_dat))
+# Join thresholds back onto full_data
+full_data <- full_data %>%
+  left_join(thresholds, by = "survey_year")
 
-# Preview the final dataset
+# Calculate risk scores (set NA if biomarker or threshold missing)
+full_data <- full_data %>%
+  mutate(
+    WHtR_risk_score  = ifelse(!is.na(WHtR)        & !is.na(WHtR_risk_threshold),  as.integer(WHtR >= WHtR_risk_threshold),  NA_integer_),
+    A1C_risk_score   = ifelse(!is.na(A1C)         & !is.na(A1C_risk_threshold),   as.integer(A1C  >= A1C_risk_threshold),   NA_integer_),
+    HDL_risk_score   = ifelse(!is.na(HDL)         & !is.na(HDL_risk_threshold),   as.integer(HDL  <= HDL_risk_threshold),   NA_integer_),
+    CRP_risk_score   = ifelse(!is.na(CRP)         & !is.na(CRP_risk_threshold),   as.integer(CRP  >= CRP_risk_threshold),   NA_integer_),
+    pulse_risk_score = ifelse(!is.na(pulse_clean) & !is.na(pulse_risk_threshold), as.integer(pulse_clean >= pulse_risk_threshold), NA_integer_)
+  )
+
+# Compute allostatic load score (NA if any component missing)
+full_data <- full_data %>%
+  mutate(
+    al_score = ifelse(
+      rowSums(is.na(select(., WHtR_risk_score, A1C_risk_score,
+                           HDL_risk_score, CRP_risk_score, pulse_risk_score))) > 0,
+      NA_integer_,
+      as.integer(
+        rowSums(select(., WHtR_risk_score, A1C_risk_score,
+                       HDL_risk_score, CRP_risk_score, pulse_risk_score),
+                na.rm = TRUE)
+      )
+    )
+  )
+
+# Add biomarker count (non-missing risk scores)
+full_data <- full_data %>%
+  mutate(
+    biomarker_count = as.integer(
+      rowSums(!is.na(select(., WHtR_risk_score, CRP_risk_score,
+                            pulse_risk_score, HDL_risk_score, A1C_risk_score)))
+    )
+  )
+
+# Trim to final dataset
+full_trim <- full_data %>%
+  select(
+    id_year, unique_id, survey_year, age, sex, birth_year, race, ethnicity,
+    WHtR, A1C, HDL, CRP, pulse_clean,
+    WHtR_risk_threshold, A1C_risk_threshold, HDL_risk_threshold, CRP_risk_threshold, pulse_risk_threshold,
+    WHtR_risk_score, A1C_risk_score, HDL_risk_score, CRP_risk_score, pulse_risk_score,
+    al_score, biomarker_count, WT_RESP, WT_PM, WT_BIO, WT_LBQ, STRATUM, SECU
+  )
+
 glimpse(full_trim)
 ```
 
@@ -644,18 +858,37 @@ glimpse(full_trim)
 
 ### Save and Export Prepared HRS Data
 
-Export the cleaned dataset for future use in your preferred format. Below are examples using both `write.csv()` and `saveRDS()`: 
+Export the final cleaned dataset in your preferred format. Below are examples using both `.csv` and `.rds` formats. 
 
 ```{r}
 
-# write.csv(full_trim, "name_your_hrs_dataset.csv")
-# Example: write.csv(full_trim, "hrs_allostatic_load_data.csv")
+# Example: export as CSV (for use in Excel, SPSS, etc.)
+# write.csv(full_trim, file.path(path, "hrs_allostatic_load_data.csv"), row.names = FALSE)
 
-# saveRDS(full_trim, "name_your_hrs_dataset.rds")
-# Example: saveRDS(full_trim, "hrs_allostatic_load_data.rds")
+# Example: export as RDS (recommended for preserving datatypes and factors in R)
+# saveRDS(full_trim, file.path(path, "hrs_allostatic_load_data.rds"))
 
 ```
 
 
+---
 
+### Using HRS Weights in Analysis
 
+This dataset includes HRS sampling weights (`WT_RESP`, `WT_PM`, `WT_BIO`, `WT_LBQ`) and survey design variables (`SECU`, `STRATUM`) to support analyses that account for the complex survey design.  
+
+A few general guidelines:  
+
+- Use sample weights when estimating population statistics (means, proportions, percentiles, regression models, etc.) intended to represent the U.S. population.  
+- Use both weights and design variables (`STRATUM`, `SECU`) when calculating standard errors, confidence intervals, or conducting hypothesis tests. These analyses typically use survey-design methods (e.g., the survey package in R).  
+- Use the weight that corresponds to the subsample from which the variable was collected::  
+
+  - Core interview variables (e.g., sex, birth_year, race, ethnicity) → `WT_RESP` 
+  - Physical measures (e.g., pulse, waist, height) → `WT_PM`  
+  - Biomarker variables (e.g., A1C, HDL, CRP) → `WT_BIO`  
+  - Leave-behind questionnaire variables → `WT_LBQ` (if used)  
+  
+This script uses weights to compute biomarker risk thresholds but does not perform weighted inference; users conducting inferential or population-level analyses should apply survey weights and design variables appropriately.  
+
+For detailed guidance, see the [HRS Cross-Wave Tracker File and Sampling Weights documentation](https://hrsdata.isr.umich.edu/data-products/cross-wave-tracker-file):  
+https://hrsdata.isr.umich.edu/data-products/cross-wave-tracker-file

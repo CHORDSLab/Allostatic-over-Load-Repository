@@ -3,7 +3,7 @@
 # HRS Data Access Guide  
 *CHORDS Lab – Washington State University*
 
-_Last updated: [2025-07-09]_
+_Last updated: [2026-02-22]_
 
 This guide walks through the process of downloading and organizing the raw data files needed to run the data preparation scripts in this repository. These steps will allow you to reproduce our processing pipeline and generate a clean, analysis-ready allostatic load dataset using publicly available and restricted-access data from the **Health and Retirement Study (HRS)**.
 
@@ -27,7 +27,8 @@ Once you've downloaded and extracted the required files, your local directory sh
     │ ├── biomkr06/  
     │ ├── biomkr08/  
     │ ├── biomkr10/  
-    │ ├── biomkr12/    
+    │ ├── biomkr12/  
+    ├── trk2022v1/      <=== (Cross-Wave Tracker File Data)
 
 ---
 
@@ -126,11 +127,33 @@ Download the **Distribution Set** for each year (2006-2016).
 
 ---
 
+## 4. Download Cross-Wave Tracker File Data
+
+The final file required for dataset construction is the **Cross-Wave Tracker File**, which contains respondent-level sampling weights and survey design variables (e.g., `WT_RESP`, `WT_PM`, `WT_BIO`, `WT_LBQ`, `STRATUM`, `SECU`).
+
+Visit the [Cross-Wave Tracker File](https://hrsdata.isr.umich.edu/data-products/cross-wave-tracker-file) page and download the most recent release (e.g., `trk2022v1`).
+
+#### Alternatively, you may use the following direct download link:
+- [Cross-Wave Tracker File – Distribution Set](https://hrsdata.isr.umich.edu/data-file-download/31983)
+
+---
+
+### Unzipping Cross-Wave Tracker File Data
+
+- Extract the downloaded tracker distribution set.
+- Place the resulting folder (e.g., `trk2022v1/`) directly inside your `HRS Data Products/` directory.
+- Ensure the `.da` and `.sas` files remain within that folder structure (do not move individual files).
+
+Your directory should now include:
+
+    HRS Data Products/
+    ├── HRS Core Data/
+    ├── Biomarker Data/
+    └── trk2022v1/
+
+---
+
 ## ✅ Setup Complete -- Proceed to Dataset Construction
-
-<img src="images/step04_hrs_final.png" alt="Final Folder Structure" width="60%"/> 
-
-<br>
 
 Once your data is organized, you’re ready to run the [`HRS_dataset_construction.Rmd`](HRS_dataset_construction.Rmd) script located in the `/HRS` directory. This script will generate the final, cleaned allostatic load dataset.
 
