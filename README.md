@@ -80,15 +80,11 @@ The accompanying [peer-reviewed publication in PLOS ONE](https://doi.org/10.1371
 
 
 ## Usage
-If you use this repository, its code, or the associated allostatic (over)load calculation workflow, please cite the following publications:
-
-**Protocol**  
-Beese, S., Cross, J., Rice, D., & DeJong, T. (2026). *Protocol for calculating allostatic (over)load from All of Us, HRS, and NHANES data*. protocols.io. https://doi.org/10.17504/protocols.io.3byl4mq7zlo5/v1
-
-**Peer-reviewed publication**  
-Beese, S., Cross, J., Rice, D., & DeJong, T. L. (2026). Allostatic (over) load measurement: Workflow and repository. *PLOS ONE, 21*(10), Article e0360639. https://doi.org/10.1371/journal.pone.0360639
-
-For historical reference, see the [earlier medRxiv preprint (2025)](https://doi.org/10.1101/2025.07.31.25332519).
+If you use this repository, its code, or the associated allostatic (over)load calculation workflow, please cite the following publications:  
+  
+Beese, S., Cross, J., Rice, D., & DeJong, T. (2026). *Protocol for calculating allostatic (over)load from All of Us, HRS, and NHANES data*. protocols.io. https://doi.org/10.17504/protocols.io.3byl4mq7zlo5/v1  
+ 
+Beese, S., Cross, J., Rice, D., & DeJong, T. L. (2026). Allostatic (over) load measurement: Workflow and repository. *PLOS ONE, 21*(10), Article e0360639. https://doi.org/10.1371/journal.pone.0360639  
 
 
 ## Repository Contents
