@@ -8,7 +8,7 @@ _Last updated: February 22, 2026_
 
 > v2.0.0 implements survey-weighted biomarker quartile thresholds for NHANES and HRS datasets and includes validation, documentation, and reproducibility improvements.
 
-This repository contains guides and R scripts for generating datasets using [our data processing approach to allostatic (over)load](https://doi.org/10.1101/2025.07.31.25332519) from the following data sources:
+This repository contains guides and R scripts for generating datasets using [our data processing approach to allostatic (over)load](https://doi.org/10.17504/protocols.io.3byl4mq7zlo5/v1) from the following data sources:
 
 - NIH *All of Us* Research Program data repository  
 - Health and Retirement Study (HRS)  
@@ -74,13 +74,21 @@ Each biomarker is coded as high or normal risk based on top/bottom quartiles or 
 
 
 ## Protocol
- Our lab’s protocol for calculating allostatic (over)load is described in detail in our [preprint on medRxiv](https://doi.org/10.1101/2025.07.31.25332519). It outlines our rationale, data sources, and step-by-step processing workflow for generating analysis-ready datasets from large-scale health surveys.
- [https://doi.org/10.1101/2025.07.31.25332519](https://doi.org/10.1101/2025.07.31.25332519)  
+Our lab's protocol for calculating allostatic (over)load is published on [protocols.io](https://doi.org/10.17504/protocols.io.3byl4mq7zlo5/v1). It provides a detailed, reproducible workflow using data from the NIH *All of Us* Research Program, the Health and Retirement Study (HRS), and the National Health and Nutrition Examination Survey (NHANES).
+
+The accompanying [peer-reviewed publication in PLOS ONE](https://doi.org/10.1371/journal.pone.0360639) provides methodological context and discussion.
 
 
-## Usage 
-**When using this protocol, workflow, or any portion of this repository, please cite:**:  
-Beese S, Cross J, Rice D, & DeJong TL (2025). *Allostatic (over)Load Measurement: Workflow and repository*. [https://doi.org/10.1101/2025.07.31.25332519](https://doi.org/10.1101/2025.07.31.25332519)
+## Usage
+If you use this repository, its code, or the associated allostatic (over)load calculation workflow, please cite the following publications:
+
+**Protocol**  
+Beese, S., Cross, J., Rice, D., & DeJong, T. (2026). *Protocol for calculating allostatic (over)load from All of Us, HRS, and NHANES data*. protocols.io. https://doi.org/10.17504/protocols.io.3byl4mq7zlo5/v1
+
+**Peer-reviewed publication**  
+Beese, S., Cross, J., Rice, D., & DeJong, T. L. (2026). Allostatic (over) load measurement: Workflow and repository. *PLOS ONE, 21*(10), Article e0360639. https://doi.org/10.1371/journal.pone.0360639
+
+For historical reference, see the [earlier medRxiv preprint (2025)](https://doi.org/10.1101/2025.07.31.25332519).
 
 
 ## Repository Contents
